@@ -59,6 +59,12 @@ export const TableStyles = css`
   }
 `;
 export const InputDatesStyles = css`
+  span {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #dfdfdf !important;
+  }
   input[type='date']::-webkit-calendar-picker-indicator {
     cursor: pointer;
     border-radius: 4px;

@@ -28,15 +28,14 @@ const ADD = () => {
       description: '',
       phone: '',
       email: '',
-      website: '',
       photo: {} as File,
       cash: 0,
       currency: 'DEFAULT',
       street: '',
       city: '',
-      state: '',
       zip: '',
-      storeType: 'DEFAULT'
+      storeType: 'DEFAULT',
+      convertion: 0
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Required'),
@@ -49,14 +48,6 @@ const ADD = () => {
           /^\d{10}$/.test(`${value}`)
         ),
       email: Yup.string().required('Required').email('Invalid email'),
-      website: Yup.string()
-        .required('Required')
-        .test('website', 'Invalid website', (value) =>
-          /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(
-            `${value}`
-          )
-        ),
-      photo: Yup.string().required('Required'),
       cash: Yup.number().required('Required'),
       currency: Yup.mixed().test(
         'currency',
@@ -65,7 +56,6 @@ const ADD = () => {
       ),
       street: Yup.string().required('Required'),
       city: Yup.string().required('Required'),
-      state: Yup.string().required('Required'),
       zip: Yup.string().required('Required'),
       storeType: Yup.mixed().test(
         'storeType',
@@ -79,10 +69,12 @@ const ADD = () => {
         variables: {
           input: {
             ...values,
-            photo: await uploadImage(values.photo, {
-              name: 'store',
-              orgcode: 'LGO-0001'
-            })
+            photo: values.photo?.name
+              ? await uploadImage(values.photo, {
+                  name: 'store',
+                  orgcode: 'LGO-0001'
+                })
+              : 'https://www.sinrumbofijo.com/wp-content/uploads/2016/05/default-placeholder.png'
           }
         }
       }).then(() => {
@@ -143,6 +135,7 @@ const ADD = () => {
         >
           <AtomInput
             id="photo"
+            imagePreview="https://www.sinrumbofijo.com/wp-content/uploads/2016/05/default-placeholder.png"
             formik={formik}
             type="dragdrop"
             width="400px"
@@ -251,29 +244,10 @@ const ADD = () => {
                 />
               </AtomButton>
             </AtomWrapper>
-
-            <AtomInput
-              id="website"
-              type="text"
-              label="Website"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
             <AtomInput
               id="email"
               type="text"
               label="Email address"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
-              id="cash"
-              type="number"
-              label="Cash"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -296,6 +270,24 @@ const ADD = () => {
                 }
               ]}
               label="Currency"
+              labelFontSize="14px"
+              labelWidth="45%"
+              formik={formik}
+              customCSS={InputStyles}
+            />
+            <AtomInput
+              id="cash"
+              type="number"
+              label="Cash"
+              labelFontSize="14px"
+              labelWidth="45%"
+              formik={formik}
+              customCSS={InputStyles}
+            />
+            <AtomInput
+              id="convertion"
+              type="number"
+              label="Cash convertion"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -324,15 +316,6 @@ const ADD = () => {
             id="city"
             type="text"
             label="City"
-            labelFontSize="14px"
-            labelWidth="30%"
-            formik={formik}
-            customCSS={InputStyles}
-          />
-          <AtomInput
-            id="state"
-            type="text"
-            label="State"
             labelFontSize="14px"
             labelWidth="30%"
             formik={formik}

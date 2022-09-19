@@ -11,6 +11,7 @@ export const GETSALEORDES = gql`
       stripeId
       secret
       createdAt
+      ticket
       product {
         id
         name

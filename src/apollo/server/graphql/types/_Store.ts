@@ -14,6 +14,7 @@ const typeDefs = gql`
     website: String
     photo: String
     cash: Float
+    convertion: Float
     currency: String
     street: String
     city: String
@@ -34,6 +35,7 @@ const typeDefs = gql`
     website: String
     photo: String
     cash: Float
+    convertion: Float
     currency: String
     street: String
     city: String
@@ -51,6 +53,7 @@ const typeDefs = gql`
     website: String
     photo: String
     cash: Float
+    convertion: Float
     currency: String
     street: String
     city: String

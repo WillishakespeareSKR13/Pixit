@@ -9,6 +9,7 @@ import { GETUSERS } from '@Src/apollo/client/query/user';
 // import MoleculeCardBoard from '@Src/components/@molecules/moleculeCardBoard';
 import MoleculeCardBoardPointSale from '@Src/components/@molecules/moleculeCardBoardPointSale';
 import MoleculeCardProduct from '@Src/components/@molecules/moleculeCardProduct';
+import DashWithTitle from '@Src/components/layouts/DashWithTitle';
 import PageIndex from '@Src/components/pages/index';
 import { colorsAtoms, ICart, setCartAtom } from '@Src/jotai/cart';
 import { RootStateType } from '@Src/redux/reducer';
@@ -174,25 +175,17 @@ const PointSale: FC = () => {
   );
 
   return (
-    <>
-      <AtomWrapper
-        customCSS={css`
-          background-color: #202026;
-          margin-bottom: 10px;
-          border-radius: 4px;
-          padding: 8px 20px;
-        `}
-      >
-        <AtomText
-          customCSS={css`
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-          `}
-        >
-          Products
-        </AtomText>
-      </AtomWrapper>
+    <DashWithTitle
+      url={{
+        pathname: router.pathname,
+        query: {
+          id: Array.isArray(router.query.id)
+            ? router.query.id.filter((_, idx, arr) => idx !== arr.length - 1)
+            : router.query.id
+        }
+      }}
+      title="Products"
+    >
       <AtomWrapper
         padding="0"
         flexDirection="row"
@@ -1207,7 +1200,7 @@ const PointSale: FC = () => {
           </AtomWrapper>
         }
       />
-    </>
+    </DashWithTitle>
   );
 };
 export default PointSale;

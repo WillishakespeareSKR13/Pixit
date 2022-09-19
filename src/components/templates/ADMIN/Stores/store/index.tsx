@@ -398,7 +398,7 @@ const VIEW = () => {
                         <AtomWrapper
                           flexDirection="row"
                           customCSS={css`
-                            gap: 5px;
+                            gap: 10px;
                             justify-content: flex-start;
                           `}
                         >
@@ -412,8 +412,9 @@ const VIEW = () => {
                               });
                             }}
                             customCSS={css`
-                              padding: 0px;
+                              padding: 0px 0px;
                               background-color: transparent;
+                              border: 1px solid #f1576c;
                             `}
                           >
                             <AtomIcon
@@ -436,8 +437,9 @@ const VIEW = () => {
                                 }
                               }}
                               customCSS={css`
-                                padding: 0px;
+                                padding: 0px 0px;
                                 background-color: transparent;
+                                border: 1px solid #f1576c;
                               `}
                             >
                               <AtomIcon
@@ -469,8 +471,9 @@ const VIEW = () => {
                                 );
                               }}
                               customCSS={css`
-                                padding: 0px;
+                                padding: 0px 0px;
                                 background-color: transparent;
+                                border: 1px solid #f1576c;
                               `}
                             >
                               <AtomIcon
@@ -481,6 +484,31 @@ const VIEW = () => {
                               />
                             </AtomButton>
                           ))}
+                          {item?.ticket && (
+                            <AtomButton
+                              onClick={() => {
+                                const ticket = item?.ticket;
+                                if (ticket) {
+                                  const a = document.createElement('a');
+                                  a.href = ticket;
+                                  a.download = 'invoice.pdf';
+                                  a.click();
+                                }
+                              }}
+                              customCSS={css`
+                                padding: 5px;
+                                background-color: transparent;
+                                border: 1px solid #f1576c;
+                              `}
+                            >
+                              <AtomIcon
+                                height="20px"
+                                width="20px"
+                                color="#f1576c"
+                                icon="https://storage.googleapis.com/cdn-bucket-ixulabs-platform/LGO-0001/assets/bill-receipt.svg"
+                              />
+                            </AtomButton>
+                          )}
                         </AtomWrapper>
                       )
                     },

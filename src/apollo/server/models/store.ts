@@ -12,6 +12,7 @@ export interface IStore extends Document {
   street: string;
   cash: number;
   currency: string;
+  convertion: number;
   city: string;
   state: string;
   zip: string;
@@ -50,6 +51,11 @@ const StoreSchema: Schema = new Schema(
     website: {
       type: String,
       trim: true
+    },
+    convertion: {
+      type: Number,
+      trim: true,
+      default: 21
     },
     photo: {
       type: String,

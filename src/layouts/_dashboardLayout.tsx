@@ -1,11 +1,9 @@
 import { FC } from 'react';
-import LayoutAnimation from '@sweetsyui/ui/build/@layouts/LayoutAnimation';
 import { css } from '@emotion/react';
-import { AtomButton, AtomWrapper, OrganismAdminSidebar } from '@sweetsyui/ui';
+import { AtomButton, AtomWrapper } from '@sweetsyui/ui';
 import AuthContext from '@Src/hooks/authContext';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Logout } from '@Src/redux/actions/user';
-import { RootStateType } from '@Src/redux/reducer';
 
 type Props = {
   Role?: string | string[];
@@ -14,10 +12,9 @@ type Props = {
 
 const DefaultLayout: FC<Props> = ({ children }) => {
   const dispatch = useDispatch();
-  const sideBar = useSelector((state: RootStateType) => state.sideBar);
   return (
     <AuthContext type="DASHBOARD">
-      <LayoutAnimation
+      <AtomWrapper
         minHeight="100vh"
         height="max-content"
         backgroundColor="transparent"
@@ -27,8 +24,7 @@ const DefaultLayout: FC<Props> = ({ children }) => {
           min-height: calc(100vh - 60px);
           margin-top: 60px;
           justify-content: flex-start;
-          width: ${sideBar ? 'calc(100% - 300px)' : 'calc(100% - 80px)'};
-          margin-left: ${sideBar ? '300px' : '80px'};
+          width: 100%;
         `}
       >
         <AtomWrapper
@@ -46,7 +42,7 @@ const DefaultLayout: FC<Props> = ({ children }) => {
         >
           {children}
         </AtomWrapper>
-      </LayoutAnimation>
+      </AtomWrapper>
       <AtomWrapper
         customCSS={css`
           z-index: 10;
@@ -56,8 +52,7 @@ const DefaultLayout: FC<Props> = ({ children }) => {
           background-color: #1a1a1f;
           height: 60px;
           position: fixed;
-          width: ${sideBar ? 'calc(100% - 300px)' : 'calc(100% - 80px)'};
-          margin-left: ${sideBar ? '300px' : '80px'};
+          width: 100%;
         `}
       >
         <AtomButton
@@ -73,13 +68,6 @@ const DefaultLayout: FC<Props> = ({ children }) => {
           Sign Out
         </AtomButton>
       </AtomWrapper>
-      <OrganismAdminSidebar
-        componentsProps={{
-          wrapperProps: {
-            backgroundColor: '#202026'
-          }
-        }}
-      />
     </AuthContext>
   );
 };
