@@ -5,7 +5,6 @@ import {
   AtomButton,
   AtomIcon,
   AtomImage,
-  AtomLink,
   AtomLoader,
   AtomText,
   AtomWrapper
