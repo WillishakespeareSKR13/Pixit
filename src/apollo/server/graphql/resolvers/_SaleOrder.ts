@@ -645,7 +645,7 @@ const resolvers: Resolvers = {
 
       const msg = {
         to: email,
-        from: 'wiliam@ixulabs.com',
+        from: 'pixit@willskr.me',
         subject: `Pixit - Sale Order #${saleOrder?.id}`,
         text: 'Thank you for your purchase',
         html: html

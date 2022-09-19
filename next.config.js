@@ -3,6 +3,9 @@
 // });
 
 module.exports = {
+  env: {
+    KEYSENDGRID: process.env.KEYSENDGRID
+  },
   images: {
     loader: 'imgix',
     path: '/'
