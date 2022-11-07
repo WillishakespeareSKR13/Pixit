@@ -1,18 +1,28 @@
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { css } from '@emotion/react';
 import { GETSALEORDERBYID } from '@Src/apollo/client/query/saleOrder';
 import {
   AtomButton,
   AtomImage,
+  AtomInput,
   AtomLoader,
   AtomText,
   AtomWrapper
 } from '@sweetsyui/ui';
 import Confetti, { ConfettiConfig } from 'react-dom-confetti';
 import { useRouter } from 'next/router';
-import React from 'react';
-import { IQueryFilter } from 'graphql';
+import React, { useEffect, useState } from 'react';
 import DownloadTicket from '@Src/components/@organisms/DownloadTicket';
+import { IQueryFilter } from 'graphql';
+import { GETSTOREBYID } from '@Src/apollo/client/query/stores';
+import { useParams } from 'react-router-dom';
+import { useAlert } from '@Src/hooks/alertContext';
+import {
+  SENDEMAIL,
+  UPDATESALEORDER
+} from '@Src/apollo/client/mutation/saleOrder';
+import { toDataURL } from 'qrcode';
+import uploadImage from '@Src/utils/uploadImage';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ConfettiComponent = Confetti as any;
@@ -33,15 +43,84 @@ const config = {
 
 const CompleteOrderPay = () => {
   const router = useRouter();
-  const { data, loading } = useQuery<IQueryFilter<'getSaleOrderById'>>(
+  const params = useParams();
+  const [qrImages, setQrImages] = useState<string[]>([]);
+  const [sendEmail, setSendEmail] = useState(false);
+  const { data } = useQuery<IQueryFilter<'getSaleOrderById'>>(
     GETSALEORDERBYID,
     {
-      skip: !router.query.id?.[router.query.id.length - 1],
+      skip: !params?.order,
       variables: {
-        id: router.query.id?.[router.query.id.length - 1]
+        id: params?.order
       }
     }
   );
+
+  const { data: dataById } = useQuery(GETSTOREBYID, {
+    variables: {
+      id: params?.id
+    }
+  });
+
+  const [EXESENDEMAIL, { loading: loadingSend }] = useMutation(SENDEMAIL);
+
+  const [EXEUPDATESALEORDER] = useMutation(UPDATESALEORDER);
+
+  const [loadingTicket, setLoadingTicket] = useState(true);
+
+  useEffect(() => {
+    const setData = async () => {
+      const images =
+        data?.getSaleOrderById?.board?.map(async (item) => {
+          const toDataUrl = await toDataURL(item?.pdf || '')?.then(
+            (res) => res
+          );
+          return toDataUrl;
+        }) ?? [];
+      setQrImages(await Promise.all(images));
+    };
+    setData();
+  }, [data]);
+
+  const [email, setEmail] = useState('');
+  const { insertAlert } = useAlert();
+
+  const pdf = DownloadTicket({
+    id: params?.order,
+    qrs: qrImages,
+    store: dataById?.getStoreById
+  });
+
+  useEffect(() => {
+    if (pdf && loadingTicket) {
+      const uploadI = async () => {
+        const BlobToFile = (blob: Blob, fileName: string) => {
+          const file = new File([blob], fileName, {
+            type: blob?.type,
+            lastModified: Date.now()
+          });
+          return file;
+        };
+        const urlPdf = await uploadImage(
+          BlobToFile(pdf?.blob as Blob, `Ticket.pdf`),
+          {
+            name: '.pdf',
+            orgcode: 'LGO-0001'
+          }
+        );
+        setLoadingTicket(false);
+        EXEUPDATESALEORDER({
+          variables: {
+            id: data?.getSaleOrderById?.id,
+            input: {
+              ticket: urlPdf
+            }
+          }
+        });
+      };
+      uploadI();
+    }
+  }, [pdf]);
 
   return (
     <AtomWrapper
@@ -53,7 +132,31 @@ const CompleteOrderPay = () => {
         overflow: hidden;
       `}
     >
-      {loading && (
+      {/* <AtomWrapper
+        customCSS={css`
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 50vw;
+          height: 50vh;
+          iframe {
+            width: 100%;
+            height: 100%;
+          }
+        `}
+      >
+        <PDFViewer>
+          <PDF
+            id={params?.order}
+            store={dataById?.getStoreById}
+            qrs={qrImages}
+            product={data?.getSaleOrderById}
+            products={dataproduct?.getProductQuantityBySaleOrder?.products}
+            terms={dataterm?.getTermsConditions}
+          />
+        </PDFViewer>
+      </AtomWrapper> */}
+      {loadingTicket && (
         <AtomLoader
           isLoading
           backgroundColor="transparent"
@@ -74,7 +177,7 @@ const CompleteOrderPay = () => {
           transform: translate(-50%, -50%);
         `}
       >
-        <ConfettiComponent active={!!data?.getSaleOrderById} config={config} />
+        <ConfettiComponent active={!loadingTicket} config={config} />
       </AtomWrapper>
       {data?.getSaleOrderById && (
         <AtomWrapper
@@ -103,51 +206,102 @@ const CompleteOrderPay = () => {
             width="max-content"
             margin="40px 0"
           />
-          {data?.getSaleOrderById?.board?.map((e) => (
-            <AtomButton
-              key={e?.id}
-              onClick={() => {
-                const pdf = e?.pdf;
-                if (pdf) {
-                  const a = document.createElement('a');
-                  a.href = pdf;
-                  a.download = 'invoice.pdf';
-                  a.click();
-                }
-              }}
-              customCSS={css`
-                margin-bottom: 10px;
-                border: 2px solid #48d496;
-                background-color: transparent;
-                span {
+
+          {sendEmail ? (
+            <>
+              <AtomText
+                customCSS={css`
+                  width: 100%;
+                  text-align: left;
                   font-size: 12px;
-                  font-weight: 500;
-                  color: #48d496;
-                }
-              `}
-            >
-              <AtomText>Download PDF</AtomText>
-            </AtomButton>
-          ))}
+                  font-weight: 600;
+                  color: #fff;
+                  margin-bottom: 5px;
+                `}
+              >
+                Email sended to {email}
+              </AtomText>
+              <AtomButton
+                onClick={() => {
+                  router.push(
+                    `/dashboard/${[...(router?.query?.id ?? [])]
+                      ?.filter((_, id) => id < 3)
+                      .join('/')}`
+                  );
+                }}
+                customCSS={css`
+                  border: 2px solid #48d496;
+                  background-color: #48d496;
+                  span {
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #fff;
+                  }
+                `}
+              >
+                <AtomText>Back to PointSale</AtomText>
+              </AtomButton>
+            </>
+          ) : (
+            <>
+              <AtomText
+                customCSS={css`
+                  width: 100%;
+                  text-align: left;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #fff;
+                  margin-bottom: 5px;
+                `}
+              >
+                Send pdfs and tickets by email
+              </AtomText>
 
-          <DownloadTicket id={router.query.id?.[router.query.id.length - 1]} />
+              <AtomWrapper
+                customCSS={css`
+                  flex-direction: row;
+                  justify-content: space-between;
+                  align-items: center;
+                  gap: 20px;
+                  margin-bottom: 20px;
+                `}
+              >
+                <AtomInput
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  customCSS={css`
+                    width: 100%;
+                  `}
+                />
+                <AtomButton
+                  loading={loadingSend}
+                  onClick={() => {
+                    const validEmail = email.match(
+                      /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/g
+                    );
 
-          <AtomButton
-            onClick={() => {
-              router.push(`/dashboard`);
-            }}
-            customCSS={css`
-              border: 2px solid #48d496;
-              background-color: #48d496;
-              span {
-                font-size: 12px;
-                font-weight: 600;
-                color: #fff;
-              }
-            `}
-          >
-            <AtomText>Back to PointSale</AtomText>
-          </AtomButton>
+                    if (validEmail) {
+                      EXESENDEMAIL({
+                        variables: {
+                          id: params?.order,
+                          email
+                        }
+                      }).then(() => {
+                        setSendEmail(true);
+                        insertAlert({
+                          id: `${params?.order}`,
+                          type: 'success',
+                          message: 'Email sent successfully'
+                        });
+                      });
+                    }
+                  }}
+                >
+                  Send
+                </AtomButton>
+              </AtomWrapper>
+            </>
+          )}
         </AtomWrapper>
       )}
     </AtomWrapper>
