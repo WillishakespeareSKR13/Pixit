@@ -39,9 +39,7 @@ const ADD = () => {
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Required'),
-      numberoffice: Yup.string().required('Required'),
       numberstore: Yup.string().required('Required'),
-      description: Yup.string().required('Required'),
       phone: Yup.string()
         .required('Required')
         .test('phone', 'Invalid phone number', (value) =>
@@ -69,12 +67,13 @@ const ADD = () => {
         variables: {
           input: {
             ...values,
+            numberoffice: 0,
             photo: values.photo?.name
               ? await uploadImage(values.photo, {
                   name: 'store',
                   orgcode: 'LGO-0001'
                 })
-              : 'https://www.sinrumbofijo.com/wp-content/uploads/2016/05/default-placeholder.png'
+              : 'https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png'
           }
         }
       }).then(() => {
@@ -135,7 +134,7 @@ const ADD = () => {
         >
           <AtomInput
             id="photo"
-            imagePreview="https://www.sinrumbofijo.com/wp-content/uploads/2016/05/default-placeholder.png"
+            imagePreview="https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png"
             formik={formik}
             type="dragdrop"
             width="400px"
@@ -153,16 +152,7 @@ const ADD = () => {
             <AtomInput
               id="name"
               type="text"
-              label="Name of store"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
-              id="numberoffice"
-              type="number"
-              label="Number of office"
+              label="Store Location"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -171,16 +161,7 @@ const ADD = () => {
             <AtomInput
               id="numberstore"
               type="number"
-              label="Number of store"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
-              id="description"
-              type="text"
-              label="Description"
+              label="Store Number"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -189,7 +170,7 @@ const ADD = () => {
             <AtomInput
               id="phone"
               type="phone"
-              label="Phone number"
+              label="Phone Number"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -278,7 +259,7 @@ const ADD = () => {
             <AtomInput
               id="cash"
               type="number"
-              label="Cash"
+              label="Perry Cash"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -287,7 +268,7 @@ const ADD = () => {
             <AtomInput
               id="convertion"
               type="number"
-              label="Cash convertion"
+              label="Currency Exchange"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}

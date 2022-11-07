@@ -5,7 +5,7 @@ import { NEWSALEORDERCASH } from '@Src/apollo/client/mutation/saleOrder';
 import { GET_BOARDS } from '@Src/apollo/client/query/boards';
 import { GETPRODUCTS } from '@Src/apollo/client/query/products';
 import { PAYSALEORDERCASH } from '@Src/apollo/client/query/saleOrder';
-import { GETUSERS } from '@Src/apollo/client/query/user';
+import { GETUSERBYID, GETUSERS } from '@Src/apollo/client/query/user';
 // import MoleculeCardBoard from '@Src/components/@molecules/moleculeCardBoard';
 import MoleculeCardBoardPointSale from '@Src/components/@molecules/moleculeCardBoardPointSale';
 import MoleculeCardProduct from '@Src/components/@molecules/moleculeCardProduct';
@@ -38,7 +38,7 @@ import {
 import { IQueryFilter } from 'graphql';
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useRouter } from 'next/router';
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const cashAtom = atom(null as null | number);
@@ -51,7 +51,7 @@ const cartOnlyBoardAtom = atom((get) =>
 const cartOnlyProductAtom = atom((get) =>
   get(setCartAtom).filter((e) => e.type !== 'BOARD')
 );
-const sellerAtom = atom('DEFAULT');
+const sellerAtom = atom(null as null | string);
 const taxAtom = atom(0);
 const discountAtom = atom(0);
 
@@ -71,6 +71,20 @@ const PointSale: FC = () => {
   const params = useParams();
   const [seller, setSeller] = useAtom(sellerAtom);
   const modal = useSelector((state: RootStateType) => state.modal);
+  const user = useSelector((state: RootStateType) => state.user);
+  const [changeSeller, setChangeSeller] = useState(false);
+
+  const { data: getUserBId } = useQuery<IQueryFilter<'getUserById'>>(
+    GETUSERBYID,
+    {
+      variables: {
+        id: seller ?? user?.id
+      }
+    }
+  );
+
+  const getSeller = useMemo(() => getUserBId?.getUserById, [getUserBId]);
+
   const { data: boards } = useQuery<IQueryFilter<'getBoards'>>(GET_BOARDS);
   const { data, loading } = useQuery<IQueryFilter<'getProducts'>>(GETPRODUCTS, {
     variables: {
@@ -119,9 +133,9 @@ const PointSale: FC = () => {
 
   const { data: dataUsers } = useQuery<IQueryFilter<'getUsers'>>(GETUSERS, {
     variables: {
-      skip: !router?.query?.id?.[1],
+      skip: !params?.id,
       filter: {
-        store: router?.query?.id?.[1]
+        store: params?.id
       }
     }
   });
@@ -200,7 +214,6 @@ const PointSale: FC = () => {
           customCSS={css`
             overflow: auto;
             justify-content: flex-start;
-            /* padding-right: 1rem; */
           `}
         >
           <AtomWrapper
@@ -233,27 +246,6 @@ const PointSale: FC = () => {
               </AtomWrapper>
             ) : (
               <>
-                {/* <AtomText
-                  customCSS={css`
-                    font-size: 25px;
-                    font-weight: bold;
-                    color: #fff;
-                  `}
-                >
-                  Boards
-                </AtomText>
-                <AtomWrapper
-                  customCSS={css`
-                    width: 100%;
-                    height: max-content;
-                    flex-direction: row;
-                    flex-wrap: wrap;
-                    justify-content: space-between;
-                    gap: 15px;
-                  `}
-                >
-                  <MoleculeCardBoardAll />
-                </AtomWrapper> */}
                 <AtomWrapper
                   customCSS={css`
                     width: 100%;
@@ -292,6 +284,19 @@ const PointSale: FC = () => {
             {cartOnlyBoard.map((e) => (
               <BOARD {...e} boards={boards} key={e.keyid} />
             ))}
+            {cartOnlyBoard.length > 0 && (
+              <SHEETS
+                quantity={cartOnlyBoard?.reduce((acc, item) => {
+                  const board = boards?.getBoards?.find(
+                    (x) => x?.id === item.id
+                  );
+                  const size = board?.sizes?.find(
+                    (x) => x?.id === item.board?.size
+                  );
+                  return acc + (size?.x ?? 0) * (size?.y ?? 0);
+                }, 0)}
+              />
+            )}
             {cartOnlyProduct.map((e) => (
               <PRODUCT {...e} key={e.keyid} />
             ))}
@@ -504,42 +509,110 @@ const PointSale: FC = () => {
             </AtomWrapper>
             <AtomWrapper
               flexDirection="row"
-              flexWrap="wrap"
               customCSS={css`
                 gap: 10px 0;
+                flex-direction: column;
                 justify-content: space-between;
               `}
             >
-              <AtomInput
-                labelWidth="45%"
-                customCSS={css`
-                  select {
-                    background-color: #f1576c;
-                    color: #ffffff;
-                    border: none;
-                    height: 31px;
-                    font-size: 10px;
-                  }
-                `}
-                type="select"
-                value={seller}
-                // selecciona una opcion (ingles)
-                defaultText="Select a option"
-                onChange={(e) => setSeller(e.target.value)}
-                options={dataUsers?.getUsers
-                  ?.filter((e) => e?.role?.name === 'AGENT')
-                  ?.map((e) => ({
+              {getSeller?.id && (
+                <AtomWrapper
+                  customCSS={css`
+                    padding: 10px 10px;
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    align-items: center;
+                    gap: 15px;
+                  `}
+                >
+                  <AtomImage
+                    alt={
+                      getSeller?.photo ??
+                      'https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png'
+                    }
+                    src={
+                      getSeller?.photo ??
+                      'https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png'
+                    }
+                    customCSS={css`
+                      width: 50px;
+                      height: 50px;
+                      border-radius: 50%;
+                      object-fit: cover;
+                      background-color: #202026;
+                    `}
+                  />
+                  <AtomWrapper
+                    customCSS={css`
+                      width: max-content;
+                      flex-direction: column;
+                    `}
+                  >
+                    <AtomText
+                      customCSS={css`
+                        font-size: 12px;
+                        font-weight: bold;
+                        color: #e2e1e2;
+                      `}
+                    >
+                      {`${getSeller?.name ?? 'Seller Name'} ${
+                        getSeller?.lastname ?? 'Seller Lastname'
+                      }`}
+                    </AtomText>
+                    <AtomText
+                      customCSS={css`
+                        font-size: 12px;
+                        font-weight: bold;
+                        color: #e2e1e2;
+                      `}
+                    >
+                      {`${getSeller?.email ?? 'Seller Email'}`}
+                    </AtomText>
+                  </AtomWrapper>
+                </AtomWrapper>
+              )}
+              {changeSeller && (
+                <AtomInput
+                  labelWidth="100%"
+                  customCSS={css`
+                    select {
+                      background-color: #f1576c;
+                      color: #ffffff;
+                      border: none;
+                      height: 31px;
+                      font-size: 10px;
+                    }
+                  `}
+                  type="select"
+                  value={seller ?? getSeller?.id ?? ''}
+                  defaultText="Select a option"
+                  onChange={(e) => setSeller(e.target.value)}
+                  options={dataUsers?.getUsers?.map((e) => ({
                     id: `${e?.id}`,
                     label: `${e?.name}`,
                     value: `${e?.id}`
                   }))}
-              />
+                />
+              )}
+              {['ADMIN', 'OWNER'].includes(user?.role?.name) && (
+                <AtomButton
+                  width="100%"
+                  backgroundColor="#f1576c"
+                  fontSize="10px"
+                  onClick={() => {
+                    setChangeSeller((e) => !e);
+                  }}
+                >
+                  {changeSeller ? 'Cancel' : 'Change Seller'}
+                </AtomButton>
+              )}
               <AtomButton
-                width="45%"
+                width="100%"
                 backgroundColor="#f1576c"
                 fontSize="10px"
                 onClick={() => setPay(true)}
-                disabled={seller === 'DEFAULT' || cart.length === 0}
+                disabled={cart.length === 0}
               >
                 Pay
               </AtomButton>
@@ -797,7 +870,7 @@ const PointSale: FC = () => {
                               variables: {
                                 input: {
                                   store: params.id,
-                                  customer: seller,
+                                  customer: getSeller?.id,
                                   board: cartFilter
                                     ?.filter((e) => e.type === 'BOARD')
                                     .map((e) => ({
@@ -805,12 +878,309 @@ const PointSale: FC = () => {
                                       size: e?.board?.size,
                                       pdf: e?.board?.pdf
                                     })),
+                                  typePayment: payments,
+                                  sheets: cartFilter
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .reduce((acc, item) => {
+                                      const board = boards?.getBoards?.find(
+                                        (x) => x?.id === item.id
+                                      );
+                                      const size = board?.sizes?.find(
+                                        (x) => x?.id === item.board?.size
+                                      );
+                                      return (
+                                        acc + (size?.x ?? 0) * (size?.y ?? 0)
+                                      );
+                                    }, 0),
                                   product: cartFilter
                                     ?.filter((e) => e.type === 'PRODUCT')
                                     .map((e) => e?.product?.id),
                                   colorsaleorder: [id],
                                   price: SubTotal - Discount + Tax,
                                   productQuantity: cartFilter
+                                    ?.filter((e) => e.type === 'PRODUCT')
+                                    .map((e) => ({
+                                      id: e?.product?.id,
+                                      quantity: e.quantity
+                                    }))
+                                }
+                              }
+                            }).then((e) => {
+                              LAZYPAYSALEORDERCASH({
+                                variables: {
+                                  id: e.data.newSaleOrderCash.id
+                                }
+                              }).then(
+                                () =>
+                                  (window.location.href = `http://${
+                                    location.host
+                                  }/dashboard/${
+                                    Array.isArray(router?.query?.id)
+                                      ? router?.query?.id?.join('/')
+                                      : ''
+                                  }/ticket/${e.data.newSaleOrderCash.id.toString()}`)
+                              );
+                            });
+                          });
+                        }}
+                      >
+                        PAY
+                      </AtomButton>
+                    </AtomWrapper>
+                  </AtomWrapper>
+                )}
+                {payments === 'CARD_AMERICAN' && (
+                  <AtomWrapper
+                    key="card"
+                    customCSS={css`
+                      max-width: 700px;
+                      align-self: center;
+                      align-items: center;
+                      width: 100%;
+                      height: 100%;
+                      gap: 20px;
+                    `}
+                  >
+                    <AtomWrapper flexDirection="row" padding="0 30px">
+                      <AtomWrapper width="50%">
+                        <AtomWrapper
+                          maxHeight="300px"
+                          justifyContent="flex-start"
+                          customCSS={css`
+                            gap: 10px;
+                            overflow-y: scroll;
+                          `}
+                        >
+                          {cartOnlyBoard.map((e) => (
+                            <BOARD key={e.id} {...e} boards={boards} />
+                          ))}
+                          {cartOnlyProduct.map((e) => (
+                            <PRODUCT key={e.id} {...e} />
+                          ))}
+                        </AtomWrapper>
+                      </AtomWrapper>
+
+                      <AtomWrapper
+                        width="50%"
+                        height="100%"
+                        alignItems="flex-end"
+                      >
+                        <AtomWrapper
+                          flexDirection="row"
+                          flexWrap="wrap"
+                          customCSS={css`
+                            span {
+                              font-size: 12px;
+                              background-color: #202026;
+                              border-radius: 4px;
+                              border: 2px solid #2e2e35;
+                              color: #ffffff;
+                              padding: 8px 15px;
+
+                              text-overflow: ellipsis;
+                              overflow: hidden;
+                              white-space: nowrap;
+                            }
+                          `}
+                        >
+                          <AtomText width="70%">Subtotal</AtomText>
+                          <AtomText width="30%" align="right">
+                            {`$${SubTotal}`}
+                          </AtomText>
+                          <AtomText
+                            width="70%"
+                            customCSS={css`
+                              display: flex;
+                              flex-direction: row;
+                              align-items: center;
+                              gap: 20px;
+                            `}
+                          >
+                            Discount
+                            <AtomWrapper
+                              customCSS={css`
+                                flex-direction: row;
+                                gap: 10px;
+                              `}
+                            >
+                              <AtomInput
+                                value={`${discount}`}
+                                onChange={(e) => setDiscount(e.target.value)}
+                                type="number"
+                                customCSS={css`
+                                  input {
+                                    color: #ffffff;
+                                    background-color: #2e2e35;
+                                    :focus {
+                                      background-color: #fe6a6a;
+                                    }
+                                    border: none;
+                                    border-radius: 2px;
+                                  }
+                                  height: 18px;
+                                  width: 50px;
+                                `}
+                              />
+                              %
+                            </AtomWrapper>
+                          </AtomText>
+                          <AtomText width="30%" align="right" maxWidth="30%">
+                            -${Discount}
+                          </AtomText>
+                          <AtomText
+                            width="70%"
+                            customCSS={css`
+                              display: flex;
+                              flex-direction: row;
+                              align-items: center;
+                              gap: 20px;
+                            `}
+                          >
+                            Tax
+                            <AtomWrapper
+                              customCSS={css`
+                                flex-direction: row;
+                                gap: 10px;
+                              `}
+                            >
+                              <AtomInput
+                                value={`${tax}`}
+                                onChange={(e) => setTax(e.target.value)}
+                                type="number"
+                                customCSS={css`
+                                  input {
+                                    color: #ffffff;
+                                    background-color: #2e2e35;
+                                    :focus {
+                                      background-color: #fe6a6a;
+                                    }
+                                    border: none;
+                                    border-radius: 2px;
+                                  }
+                                  height: 18px;
+                                  width: 50px;
+                                `}
+                              />
+                              %
+                            </AtomWrapper>
+                          </AtomText>
+                          <AtomText width="30%" align="right" maxWidth="30%">
+                            ${Tax}
+                          </AtomText>
+                          <AtomText width="70%">Grand Total</AtomText>
+                          <AtomText width="30%" align="right">
+                            ${SubTotal - Discount + Tax}
+                          </AtomText>
+                          <AtomText
+                            width="100%"
+                            customCSS={css`
+                              display: flex;
+                              flex-direction: row;
+                              align-items: center;
+                              gap: 20px;
+                            `}
+                          >
+                            Tax Card
+                            <AtomInput
+                              height="22px"
+                              labelWidth="100%"
+                              type="number"
+                              autoFocus
+                              value={`${cardTax}`}
+                              placeholder="$0.00"
+                              onChange={(e) => setCardTax(e.target.value)}
+                              customCSS={css`
+                                input {
+                                  color: #ffffff;
+                                  border: none;
+                                  border-radius: 2px;
+                                  background-color: #2e2e35;
+                                  :focus {
+                                    background-color: #fe6a6a;
+                                  }
+                                }
+                                height: 18px;
+                                width: 100%;
+                              `}
+                            />
+                          </AtomText>
+
+                          <AtomText width="70%">To Pay</AtomText>
+                          <AtomText
+                            width="30%"
+                            align="right"
+                            customCSS={css`
+                              color: #22b620 !important;
+                            `}
+                          >
+                            ${SubTotal - Discount + Tax + Number(cardTax)}
+                          </AtomText>
+                        </AtomWrapper>
+                      </AtomWrapper>
+                    </AtomWrapper>
+                    <AtomWrapper
+                      flexDirection="row"
+                      alignItems="flex-end"
+                      customCSS={css`
+                        gap: 50px;
+                      `}
+                    >
+                      <AtomButton
+                        onClick={() => {
+                          setPay(!pay);
+                          setPayments('');
+                          setPayed(false);
+                        }}
+                      >
+                        CANCEL
+                      </AtomButton>
+                      <AtomButton
+                        loading={load2 || load1 || load3}
+                        onClick={() => {
+                          EXENEWCOLORSALEORDER({
+                            variables: {
+                              input: {
+                                colors: colors?.map((color) => ({
+                                  color: color.id,
+                                  quantity: color.count
+                                }))
+                              }
+                            }
+                          }).then((e) => {
+                            const id = e.data.newColorSaleOrder.id;
+                            EXENEWSALEORDER({
+                              variables: {
+                                input: {
+                                  store: params.id,
+                                  customer: seller,
+                                  board: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .map((e) => ({
+                                      board: e?.board?.id,
+                                      size: e?.board?.size,
+                                      pdf: e?.board?.pdf
+                                    })),
+                                  typePayment: payments,
+                                  sheets: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .reduce((acc, item) => {
+                                      const board = boards?.getBoards?.find(
+                                        (x) => x?.id === item.id
+                                      );
+                                      const size = board?.sizes?.find(
+                                        (x) => x?.id === item.board?.size
+                                      );
+                                      return (
+                                        acc + (size?.x ?? 0) * (size?.y ?? 0)
+                                      );
+                                    }, 0),
+                                  product: cart
+                                    ?.filter((e) => e.type === 'PRODUCT')
+                                    .map((e) => e?.product?.id),
+                                  colorsaleorder: [id],
+                                  price:
+                                    SubTotal - Discount + Tax + Number(cardTax),
+                                  productQuantity: cart
                                     ?.filter((e) => e.type === 'PRODUCT')
                                     .map((e) => ({
                                       id: e?.product?.id,
@@ -1063,7 +1433,7 @@ const PointSale: FC = () => {
                               variables: {
                                 input: {
                                   store: params.id,
-                                  customer: seller,
+                                  customer: getSeller?.id,
                                   board: cart
                                     ?.filter((e) => e.type === 'BOARD')
                                     .map((e) => ({
@@ -1071,6 +1441,20 @@ const PointSale: FC = () => {
                                       size: e?.board?.size,
                                       pdf: e?.board?.pdf
                                     })),
+                                  typePayment: payments,
+                                  sheets: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .reduce((acc, item) => {
+                                      const board = boards?.getBoards?.find(
+                                        (x) => x?.id === item.id
+                                      );
+                                      const size = board?.sizes?.find(
+                                        (x) => x?.id === item.board?.size
+                                      );
+                                      return (
+                                        acc + (size?.x ?? 0) * (size?.y ?? 0)
+                                      );
+                                    }, 0),
                                   product: cart
                                     ?.filter((e) => e.type === 'PRODUCT')
                                     .map((e) => e?.product?.id),
@@ -1113,7 +1497,7 @@ const PointSale: FC = () => {
             ) : (
               <AtomWrapper
                 customCSS={css`
-                  max-width: 700px;
+                  max-width: 900px;
                   align-items: center;
                   justify-content: center;
                   align-self: center;
@@ -1144,11 +1528,13 @@ const PointSale: FC = () => {
                   customCSS={css`
                     gap: 40px;
                     padding: 40px 0;
+                    flex-wrap: wrap;
                   `}
                 >
                   {[
-                    { id: 1, name: 'Cash', value: 'CASH' },
-                    { id: 2, name: 'Debit/Credit Card', value: 'CARD' }
+                    { id: 1, name: 'American Express', value: 'CARD_AMERICAN' },
+                    { id: 2, name: 'Visa/Master Card', value: 'CARD' },
+                    { id: 3, name: 'Cash', value: 'CASH' }
                   ].map((e) => (
                     <AtomButton
                       key={e.id}
@@ -1207,6 +1593,71 @@ export default PointSale;
 
 import { useParams } from 'react-router-dom';
 
+type ISheet = {
+  quantity: number;
+};
+const SHEETS = (e: ISheet) => {
+  const { quantity } = e;
+
+  return (
+    <AtomWrapper
+      customCSS={css`
+        width: 100%;
+        padding: 15px 15px;
+        flex-direction: row;
+        background-color: #202026;
+        border-radius: 4px;
+        gap: 20px;
+        color: #fff;
+        font-weight: bold;
+        align-items: center;
+      `}
+    >
+      <AtomImage
+        customCSS={css`
+          width: 40px;
+          height: 40px;
+        `}
+        src={'/images/board.png'}
+        alt={'/images/board.png'}
+      />
+      <AtomWrapper
+        customCSS={css`
+          width: calc(100% - 80px);
+          display: flex;
+          flex-direction: row;
+        `}
+      >
+        <AtomText
+          customCSS={css`
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 70%;
+          `}
+        >
+          Sheets
+        </AtomText>
+        <AtomWrapper
+          customCSS={css`
+            display: flex;
+            flex-direction: row;
+            width: max-content;
+            gap: 10px;
+            width: 30%;
+            justify-content: flex-end;
+          `}
+        >
+          <AtomText color="#ffffff">{quantity}</AtomText>
+        </AtomWrapper>
+      </AtomWrapper>
+    </AtomWrapper>
+  );
+};
+
 const BOARD = (e: ICart) => {
   const { boards, keyid } = e;
   const setCart = useSetAtom(setCartAtom);
@@ -1249,7 +1700,6 @@ const BOARD = (e: ICart) => {
             font-size: 12px;
             font-weight: bold;
             color: #fff;
-            margin-bottom: 10px;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;

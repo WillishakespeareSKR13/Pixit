@@ -7,3 +7,19 @@ export const LOGIN = gql`
     }
   }
 `;
+
+export const UPDATEUSER = gql`
+  mutation updateUser($input: InputUser, $id: ID!) {
+    updateUser(input: $input, id: $id) {
+      id
+    }
+  }
+`;
+
+export const DELETEUSER = gql`
+  mutation deleteUser($id: ID!) {
+    deleteUser(id: $id) {
+      id
+    }
+  }
+`;

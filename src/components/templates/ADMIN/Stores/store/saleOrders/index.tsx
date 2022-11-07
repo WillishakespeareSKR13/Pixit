@@ -8,7 +8,7 @@ import {
   AtomWrapper
 } from '@sweetsyui/ui';
 import { IQueryFilter } from 'graphql';
-import React, { FC, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import { arrayToCsv, downloadCsv } from '..';
 import { convertDate, convertDateWithOptions } from '@Src/utils/convertDate';
 import { useQuery } from '@apollo/client';
@@ -19,10 +19,18 @@ import DashWithTitle from '@Src/components/layouts/DashWithTitle';
 
 const initDate = new Date()?.toISOString()?.split('T')[0];
 
+const TypeCards = {
+  CARD: 'Visa / Mastercard',
+  CASH: 'Efectivo',
+  CARD_AMERICAN: 'American Express',
+  NONE: 'Sin especificar'
+};
+
 const SaleOrder: FC = () => {
   const [dateInitial, setdateInitial] = useState(initDate);
   const [dateFinal, setdateFinal] = useState(initDate);
   const [search, setSearch] = useState('');
+  const [typePayment, setTypePayment] = useState('ALL');
   const router = useRouter();
   const { data: dataOrders } = useQuery<IQueryFilter<'getSaleOrders'>>(
     GETSALEORDES,
@@ -34,6 +42,41 @@ const SaleOrder: FC = () => {
         }
       }
     }
+  );
+
+  const dataFiltered = useMemo(
+    () =>
+      dataOrders?.getSaleOrders
+        ?.map((order) => ({
+          ...order,
+          createdAt: new Date(Number(order?.createdAt) ?? 0)
+        }))
+        .sort((a, b) =>
+          a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0
+        )
+        .filter((order) =>
+          typePayment === 'ALL' ? true : order?.typePayment === typePayment
+        )
+        .filter((order) => {
+          const isOnchangeDate =
+            initDate === dateInitial && initDate === dateFinal;
+          if (isOnchangeDate) return true;
+          const dateOne = new Date(dateInitial);
+          const dateTwo = new Date(dateFinal);
+
+          return order.createdAt >= dateOne && order.createdAt <= dateTwo;
+        })
+        .filter((order) => {
+          if (!search) return true;
+          const name = [
+            order?.board?.map((board) => board?.board?.title ?? '') ?? [],
+            order?.product?.map((product) => product?.name ?? '') ?? []
+          ]?.find((name) =>
+            name?.toString()?.toLowerCase().includes(search?.toLowerCase())
+          );
+          return name;
+        }),
+    [dataOrders?.getSaleOrders, search, dateInitial, dateFinal, typePayment]
   );
 
   return (
@@ -99,7 +142,6 @@ const SaleOrder: FC = () => {
         customCSS={css`
           width: 100%;
           height: max-content;
-          gap: 20px;
         `}
       >
         <AtomWrapper
@@ -163,6 +205,35 @@ const SaleOrder: FC = () => {
             `}
           >
             <AtomInput
+              id="typePayment"
+              type="select"
+              label="Type Payment"
+              value={typePayment}
+              options={[
+                { id: 'all', value: 'ALL', label: 'All' },
+                {
+                  id: 'cash',
+                  value: 'CASH',
+                  label: 'Cash'
+                },
+                {
+                  id: 'card',
+                  value: 'CARD',
+                  label: 'Visa/Mastercard'
+                },
+                {
+                  id: 'card_american',
+                  value: 'CARD_AMERICAN',
+                  label: 'American Express'
+                }
+              ]}
+              onChange={(e) => setTypePayment(e.target.value)}
+              customCSS={css`
+                ${InputStyles}
+                ${InputDatesStyles}
+              `}
+            />
+            <AtomInput
               id="search"
               type="text"
               label="Search"
@@ -190,42 +261,25 @@ const SaleOrder: FC = () => {
             overflow-x: scroll;
           `}
         >
+          <AtomWrapper
+            customCSS={css`
+              width: 100%;
+              align-items: flex-end;
+              padding: 10px 20px;
+            `}
+          >
+            <AtomText
+              customCSS={css`
+                width: max-content;
+                color: #e4f2f2;
+                font-size: 14px;
+                font-weight: 600;
+              `}
+            >{`Total: ${dataFiltered?.length}`}</AtomText>
+          </AtomWrapper>
           <AtomTable
             customCSS={TableStyles}
-            data={dataOrders?.getSaleOrders
-              ?.map((order) => ({
-                ...order,
-                createdAt: new Date(Number(order?.createdAt) ?? 0)
-              }))
-              .sort((a, b) =>
-                a.createdAt < b.createdAt
-                  ? 1
-                  : a.createdAt > b.createdAt
-                  ? -1
-                  : 0
-              )
-              .filter((order) => {
-                const isOnchangeDate =
-                  initDate === dateInitial && initDate === dateFinal;
-                if (isOnchangeDate) return true;
-                const dateOne = new Date(dateInitial);
-                const dateTwo = new Date(dateFinal);
-
-                return order.createdAt >= dateOne && order.createdAt <= dateTwo;
-              })
-              .filter((order) => {
-                if (!search) return true;
-                const name = [
-                  order?.board?.map((board) => board?.board?.title ?? '') ?? [],
-                  order?.product?.map((product) => product?.name ?? '') ?? []
-                ]?.find((name) =>
-                  name
-                    ?.toString()
-                    ?.toLowerCase()
-                    .includes(search?.toLowerCase())
-                );
-                return name;
-              })}
+            data={dataFiltered}
             columns={[
               {
                 title: 'Details',
@@ -400,6 +454,15 @@ const SaleOrder: FC = () => {
               {
                 title: 'Status',
                 view: (item) => <>{`${item?.status}`}</>
+              },
+              {
+                title: 'Type Payment',
+                view: (item) => (
+                  <>{`${
+                    TypeCards[item?.typePayment as keyof typeof TypeCards] ??
+                    TypeCards.NONE
+                  }`}</>
+                )
               },
               {
                 title: 'Seller',

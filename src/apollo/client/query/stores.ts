@@ -13,6 +13,7 @@ export const GETSTORES = gql`
       website
       photo
       cash
+      sheets
       currency
       street
       city
@@ -39,10 +40,12 @@ export const GETSTOREBYID = gql`
       website
       photo
       cash
+      sheets
       currency
       street
       city
       state
+      convertion
       zip
       storeType {
         id

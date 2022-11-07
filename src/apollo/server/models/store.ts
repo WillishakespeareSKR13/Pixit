@@ -11,6 +11,7 @@ export interface IStore extends Document {
   photo: string;
   street: string;
   cash: number;
+  sheets: number;
   currency: string;
   convertion: number;
   city: string;
@@ -61,7 +62,7 @@ const StoreSchema: Schema = new Schema(
       type: String,
       trim: true,
       default:
-        'https://farmersca.com/wp-content/webp-express/webp-images/uploads/2016/07/default-profile-300x300.png.webp'
+        'https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png'
     },
     street: {
       type: String,
@@ -71,6 +72,10 @@ const StoreSchema: Schema = new Schema(
       type: Number,
       trim: true,
       default: 0.0
+    },
+    sheets: {
+      type: Number,
+      default: 0
     },
     currency: {
       type: String,

@@ -16,6 +16,8 @@ const typeDefs = gql`
     ticket: String
     total: Float
     currency: String
+    sheets: Int
+    typePayment: String
     status: String
     colorsaleorder: [ColorSaleOrder]
     createdAt: String
@@ -37,6 +39,8 @@ const typeDefs = gql`
     store: String
     ticket: String
     customer: String
+    sheets: Int
+    typePayment: String
     colorsaleorder: [String]
     price: Float
     productQuantity: [InputProductQuantity]

@@ -49,7 +49,7 @@ const UserSchema: Schema = new Schema(
       type: String,
       trim: true,
       default:
-        'https://farmersca.com/wp-content/webp-express/webp-images/uploads/2016/07/default-profile-300x300.png.webp'
+        'https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png'
     },
     emailVerified: {
       type: Boolean,

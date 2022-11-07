@@ -9,15 +9,13 @@ import {
   usePDF,
   View
 } from '@react-pdf/renderer';
-import { useMutation, useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { IQueryFilter, ISaleOrder } from 'graphql';
 import { GETSALEORDERBYID } from '@Src/apollo/client/query/saleOrder';
 import { GETPRODUCTQUANTITY } from '@Src/apollo/client/query/products';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { GETTERMSCONDITIONS } from '@Src/apollo/client/query/termsconditions';
 
-import uploadImage from '@Src/utils/uploadImage';
-import { UPDATESALEORDER } from '@Src/apollo/client/mutation/saleOrder';
 type Props = {
   id?: string;
   store?: any;
@@ -38,38 +36,38 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   logo: {
-    height: '80px',
-    width: '200px',
+    height: '40px',
+    width: '100px',
     marginBottom: 20
   },
   text: {
-    fontSize: 10,
-    marginBottom: 10,
+    fontSize: 8,
+    marginBottom: 5,
     maxWidth: 250
   },
   text2: {
-    fontSize: 10,
-    marginBottom: 5,
+    fontSize: 8,
+    marginBottom: 2,
     maxWidth: 250
   },
   text3: {
-    fontSize: 10,
-    marginBottom: 5,
+    fontSize: 8,
+    marginBottom: 2,
     width: '100%'
   },
   textLarge: {
-    fontSize: 10,
-    marginBottom: 5,
+    fontSize: 8,
+    marginBottom: 2,
     width: 80
   },
   textEnd: {
-    fontSize: 10,
-    marginBottom: 5,
+    fontSize: 8,
+    marginBottom: 2,
     width: 60
   },
   textBig: {
-    fontSize: 10,
-    marginBottom: 5,
+    fontSize: 8,
+    marginBottom: 2,
     fontWeight: 'bold'
   },
   viewJustify: {
@@ -81,9 +79,7 @@ const styles = StyleSheet.create({
 
 type PropsPDF = {
   id?: string;
-  product?: ISaleOrder & {
-    number?: number;
-  };
+  product?: ISaleOrder;
   products?: {
     id: string;
     quantity: number;
@@ -93,7 +89,7 @@ type PropsPDF = {
   qrs?: string[];
 };
 
-const PDF = (props: PropsPDF) => {
+export const PDF = (props: PropsPDF) => {
   const { product, products, store, terms, qrs } = props;
   const getProduct = useMemo(
     () =>
@@ -127,7 +123,7 @@ const PDF = (props: PropsPDF) => {
                 No.{' '}
                 {`${addcero(store?.numberoffice)}${addcero(
                   store?.numberstore
-                )}${addcero(product?.number ?? 1)}`}
+                )}${addcero(Number(product?.number ?? 1))}`}
               </Text>
             </View>
             <View style={styles.viewJustify}>
@@ -142,7 +138,7 @@ const PDF = (props: PropsPDF) => {
                 >{`${store?.street} ${store?.zip}`}</Text>
                 <Text style={styles.text2}>{store?.id}</Text>
                 <Text style={styles.text2}>{`No. Ticket ${addcero(
-                  product?.number ?? 1
+                  Number(product?.number ?? 1)
                 )}`}</Text>
               </View>
               <View
@@ -221,8 +217,8 @@ const PDF = (props: PropsPDF) => {
                   source={qr}
                   key={qr}
                   style={{
-                    width: 150,
-                    height: 150
+                    width: 80,
+                    height: 80
                   }}
                 />
               ))}
@@ -235,9 +231,9 @@ const PDF = (props: PropsPDF) => {
 };
 
 const DownloadTicket = (props: Props) => {
-  const { id, store, qrs, callback } = props;
-
-  const { data, refetch } = useQuery<IQueryFilter<'getSaleOrderById'>>(
+  const { id, store, qrs } = props;
+  const [isLoad, setIsLoad] = useState(true);
+  const { data } = useQuery<IQueryFilter<'getSaleOrderById'>>(
     GETSALEORDERBYID,
     {
       variables: {
@@ -246,119 +242,46 @@ const DownloadTicket = (props: Props) => {
     }
   );
 
-  const { data: data2 } = useQuery(GETPRODUCTQUANTITY, {
+  const { data: dataproduct } = useQuery(GETPRODUCTQUANTITY, {
     variables: {
       id: id
     }
   });
   const { data: dataterm } = useQuery(GETTERMSCONDITIONS);
-  //id,
-  // products: data2?.getProductQuantityBySaleOrder?.products,
-  // product: data?.getSaleOrderById,
-  // store: store.getStoreById,
-  // terms: dataterm?.getTermsConditions,
-  // qrs: qrs
-  const [EXEUPDATESALEORDER] = useMutation(UPDATESALEORDER);
 
-  const [pdf] = usePDF({
+  const [pdf, update] = usePDF({
     document: (
       <PDF
         id={id}
-        products={data2?.getProductQuantityBySaleOrder?.products}
-        product={data?.getSaleOrderById}
-        store={store.getStoreById}
-        terms={dataterm?.getTermsConditions}
+        store={store}
         qrs={qrs}
+        product={data?.getSaleOrderById}
+        products={dataproduct?.getProductQuantityBySaleOrder?.products}
+        terms={dataterm?.getTermsConditions}
       />
     )
   });
 
   useEffect(() => {
-    if (!pdf?.loading && data?.getSaleOrderById?.id) {
-      if (data?.getSaleOrderById?.ticket) {
-        callback?.();
-      } else {
-        const uploadI = async () => {
-          const BlobToFile = (blob: Blob, fileName: string) => {
-            const file = new File([blob], fileName, {
-              type: blob?.type,
-              lastModified: Date.now()
-            });
-            return file;
-          };
-          const urlPdf = await uploadImage(
-            BlobToFile(pdf?.blob as Blob, `Ticket.pdf`),
-            {
-              name: '.pdf',
-              orgcode: 'LGO-0001'
-            }
-          );
-          if (urlPdf) {
-            EXEUPDATESALEORDER({
-              variables: {
-                id: data?.getSaleOrderById?.id,
-                input: {
-                  ticket: urlPdf
-                }
-              }
-            })?.then(() => {
-              callback?.();
-              refetch();
-            });
-          }
-        };
-        uploadI();
-      }
+    const load =
+      id &&
+      store &&
+      dataproduct &&
+      data &&
+      dataterm?.getTermsConditions &&
+      ((data?.getSaleOrderById?.board?.length ?? 0) > 0
+        ? (qrs?.length ?? 0) > 0
+        : true);
+    if (load) {
+      update();
+      setIsLoad(false);
     }
-  }, [pdf, data]);
+  }, [dataproduct, data, dataterm, qrs, store, id]);
 
-  return (
-    <>
-      {/* <PDFDownloadLink
-        document={PDF({
-          id,
-          products: data2?.getProductQuantityBySaleOrder?.products,
-          product: data?.getSaleOrderById,
-          store: store.getStoreById,
-          terms: dataterm?.getTermsConditions,
-          qrs: qrs
-        })}
-        fileName={`${new Date().toLocaleString()}.pdf`}
-      >
-        {({ loading }) =>
-          loading ? (
-            <AtomButton
-              customCSS={css`
-                border: 2px solid #48d496;
-                background-color: transparent;
-                span {
-                  font-size: 12px;
-                  font-weight: 500;
-                  color: #48d496;
-                }
-              `}
-            >
-              <AtomText>Load Ticket</AtomText>
-            </AtomButton>
-          ) : (
-            <AtomButton
-              customCSS={css`
-                border: 2px solid #48d496;
-                background-color: transparent;
-                span {
-                  font-size: 12px;
-                  font-weight: 500;
-                  color: #48d496;
-                }
-              `}
-            >
-              <AtomText>Ticket</AtomText>
-            </AtomButton>
-          )
-        }
-      </PDFDownloadLink> */}
-    </>
-  );
+  if (!isLoad && !pdf?.loading) {
+    return pdf;
+  }
+  return null;
 };
 
 export default DownloadTicket;

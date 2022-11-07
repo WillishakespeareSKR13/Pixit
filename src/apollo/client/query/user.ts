@@ -49,6 +49,30 @@ export const GETUSERS = gql`
   }
 `;
 
+export const GETUSERBYID = gql`
+  query getUserById($id: ID!) {
+    getUserById(id: $id) {
+      id
+      name
+      lastname
+      nickname
+      email
+      photo
+      emailVerified
+      disabled
+      birthdate
+      role {
+        id
+        name
+      }
+      store {
+        id
+        name
+      }
+    }
+  }
+`;
+
 export const CREATEUSER = gql`
   mutation newUser($input: InputUser) {
     newUser(input: $input) {

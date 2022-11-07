@@ -29,7 +29,7 @@ const OrganismsConvertImage: FC = () => {
   const [selected, setSelected] = useState('SQUARE');
   const [selectedSize, setSelectedSize] = useState('SMALL');
   const [showBorder, setShowBorder] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState('DEFAULT');
+  const [selectedRoom, setSelectedRoom] = useState('REAL');
   const [cropImages, setCropImages] = useState<CROPPEDIMAGE>([]);
   const [cropImagesBlock, setCropImagesBlock] = useState<CROPPEDIMAGE>([]);
   const [colors, setColors] = useState<COLORTYPE[]>([]);
@@ -88,6 +88,311 @@ const OrganismsConvertImage: FC = () => {
       }, 3000);
     }
   }, [cropImagesBlock, quantity]);
+
+  const VIEWIMAGE = (type: string) => {
+    switch (type) {
+      case 'REAL':
+        return (
+          <AtomWrapper
+            customCSS={css`
+              width: 600px;
+              height: 600px;
+              position: relative;
+            `}
+          >
+            <AtomWrapper
+              customCSS={css`
+                width: max-content;
+                height: max-content;
+                position: absolute;
+                top: 50%;
+                right: 50%;
+                transform: translate(50%, -50%);
+                background-color: #313139;
+                box-shadow: 0px 3px 5px 2px rgba(0, 0, 0, 0.522);
+                outline: 1px solid #6a6a6a5c;
+              `}
+            >
+              {loading || isLoading ? (
+                <AtomLoader
+                  isLoading
+                  colorLoading="#4a4a54"
+                  type="small"
+                  customCSS={css`
+                    width: ${90 * (selectedConfig?.x ?? 0)}px;
+                    height: ${90 * (selectedConfig?.y ?? 0)}px;
+                    .lds-ring {
+                      width: 30px;
+                      height: 30px;
+                      div {
+                        margin: 1px 2px;
+                        width: 30px;
+                        height: 30px;
+                      }
+                    }
+                  `}
+                />
+              ) : (
+                <AtomWrapper
+                  customCSS={css`
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    width: ${90 * (selectedConfig?.x ?? 0)}px;
+                    height: ${90 * (selectedConfig?.y ?? 0)}px;
+                    align-items: center;
+                    justify-content: center;
+                  `}
+                >
+                  {cropImagesBlock.length > 0 ? (
+                    <>
+                      {cropImagesBlock.map((image, i) => (
+                        <AtomButton
+                          key={`image${image?.id}`}
+                          customCSS={css`
+                            display: flex;
+                            padding: 0px;
+                          `}
+                          onClick={() => {
+                            setModalImage(true);
+                            setSelectedImage(i);
+                          }}
+                        >
+                          <StyledImage
+                            src={image.image}
+                            alt="croppedImage"
+                            customCSS={css`
+                              ${showBorder &&
+                              css`
+                                border: 2px solid #202024;
+                              `}
+                              width: 90px;
+                              height: 90px;
+                            `}
+                          />
+                        </AtomButton>
+                      ))}
+                    </>
+                  ) : (
+                    <AtomWrapper
+                      justifyContent="center"
+                      alignItems="center"
+                      width="max-content"
+                    >
+                      <AtomText
+                        color="#4a4a54"
+                        fontSize={`${(90 * (selectedConfig?.x ?? 0)) / 6}px`}
+                        fontWeight={600}
+                        customCSS={css`
+                          text-align: center;
+                        `}
+                      >
+                        Pixit your image
+                      </AtomText>
+                    </AtomWrapper>
+                  )}
+                </AtomWrapper>
+              )}
+            </AtomWrapper>
+          </AtomWrapper>
+        );
+      case 'FULL':
+        return (
+          <>
+            {loading || isLoading ? (
+              <AtomLoader
+                isLoading
+                colorLoading="#dadadb"
+                type="small"
+                widthLoader="2px"
+                customCSS={css`
+                  width: ${(selectedRoomSizeConfig?.width ?? 0) * 3}px;
+                  height: ${(selectedRoomSizeConfig?.height ?? 0) * 3}px;
+                  .lds-ring {
+                    width: 30px;
+                    height: 30px;
+                    div {
+                      margin: 1px 2px;
+                      width: 30px;
+                      height: 30px;
+                    }
+                  }
+                `}
+              />
+            ) : (
+              <AtomWrapper
+                customCSS={css`
+                  flex-direction: row;
+                  flex-wrap: wrap;
+                  width: ${(selectedRoomSizeConfig?.width ?? 0) * 3}px;
+                  height: ${(selectedRoomSizeConfig?.height ?? 0) * 3}px;
+                  align-items: center;
+                  justify-content: center;
+                  background-color: #313139;
+                `}
+              >
+                {cropImagesBlock.length > 0 ? (
+                  <>
+                    {cropImagesBlock.map((image, i) => (
+                      <AtomButton
+                        key={`image${i}`}
+                        customCSS={css`
+                          display: flex;
+                          padding: 0px;
+                        `}
+                        onClick={() => {
+                          setModalImage(true);
+                          setSelectedImage(i);
+                        }}
+                      >
+                        <StyledImage
+                          src={image.image}
+                          alt="croppedImage"
+                          customCSS={css`
+                            ${showBorder &&
+                            css`
+                              border: 2px solid #242020;
+                            `}
+                            width: ${((selectedRoomSizeConfig?.width ?? 0) *
+                              3 ?? 0) / (selectedConfig?.x ?? 0)}px;
+                            height: ${((selectedRoomSizeConfig?.height ?? 0) *
+                              3 ?? 0) / (selectedConfig?.y ?? 0)}px;
+                          `}
+                        />
+                      </AtomButton>
+                    ))}
+                  </>
+                ) : (
+                  <AtomWrapper
+                    justifyContent="center"
+                    alignItems="center"
+                    width="max-content"
+                  >
+                    <AtomText
+                      color="#dadadb"
+                      fontSize="22px"
+                      fontWeight={600}
+                      customCSS={css`
+                        text-align: center;
+                      `}
+                    >
+                      Pixit your image
+                    </AtomText>
+                  </AtomWrapper>
+                )}
+              </AtomWrapper>
+            )}
+          </>
+        );
+
+      default:
+        return (
+          <AtomWrapper
+            customCSS={css`
+              width: 600px;
+              height: 600px;
+              background-image: url(${selectedRoomConfig?.image});
+              position: relative;
+            `}
+          >
+            <AtomWrapper
+              customCSS={css`
+                width: max-content;
+                height: max-content;
+                position: absolute;
+                top: ${selectedRoomConfig?.offset?.find(
+                  (off) => off?.key?.name === selected
+                )?.top}px;
+                right: 50%;
+                transform: translate(50%, -50%);
+                background-color: #313139;
+                box-shadow: 0px 3px 5px 2px rgba(0, 0, 0, 0.522);
+                outline: 1px solid #6a6a6a5c;
+              `}
+            >
+              {loading || isLoading ? (
+                <AtomLoader
+                  isLoading
+                  colorLoading="#4a4a54"
+                  type="small"
+                  customCSS={css`
+                    width: ${30 * (selectedConfig?.x ?? 0)}px;
+                    height: ${30 * (selectedConfig?.y ?? 0)}px;
+                    .lds-ring {
+                      width: 30px;
+                      height: 30px;
+                      div {
+                        margin: 1px 2px;
+                        width: 30px;
+                        height: 30px;
+                      }
+                    }
+                  `}
+                />
+              ) : (
+                <AtomWrapper
+                  customCSS={css`
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    width: ${30 * (selectedConfig?.x ?? 0)}px;
+                    height: ${30 * (selectedConfig?.y ?? 0)}px;
+                    align-items: center;
+                    justify-content: center;
+                  `}
+                >
+                  {cropImagesBlock.length > 0 ? (
+                    <>
+                      {cropImagesBlock.map((image, i) => (
+                        <AtomButton
+                          key={`image${image?.id}`}
+                          customCSS={css`
+                            display: flex;
+                            padding: 0px;
+                          `}
+                          onClick={() => {
+                            setModalImage(true);
+                            setSelectedImage(i);
+                          }}
+                        >
+                          <StyledImage
+                            src={image.image}
+                            alt="croppedImage"
+                            customCSS={css`
+                              ${showBorder &&
+                              css`
+                                border: 2px solid #202024;
+                              `}
+                              width: 30px;
+                              height: 30px;
+                            `}
+                          />
+                        </AtomButton>
+                      ))}
+                    </>
+                  ) : (
+                    <AtomWrapper
+                      justifyContent="center"
+                      alignItems="center"
+                      width="max-content"
+                    >
+                      <AtomText
+                        color="#4a4a54"
+                        fontSize={`${(30 * (selectedConfig?.x ?? 0)) / 6}px`}
+                        fontWeight={600}
+                        customCSS={css`
+                          text-align: center;
+                        `}
+                      >
+                        Pixit your image
+                      </AtomText>
+                    </AtomWrapper>
+                  )}
+                </AtomWrapper>
+              )}
+            </AtomWrapper>
+          </AtomWrapper>
+        );
+    }
+  };
 
   return (
     <>
@@ -372,201 +677,10 @@ const OrganismsConvertImage: FC = () => {
                 flex-wrap: wrap;
                 align-items: center;
                 justify-content: center;
-                background-color: #313139;
+                background-color: #202024;
               `}
             >
-              {selectedRoom === 'DEFAULT' ? (
-                <>
-                  {loading || isLoading ? (
-                    <AtomLoader
-                      isLoading
-                      colorLoading="#dadadb"
-                      type="small"
-                      widthLoader="2px"
-                      customCSS={css`
-                        width: ${(selectedRoomSizeConfig?.width ?? 0) * 3}px;
-                        height: ${(selectedRoomSizeConfig?.height ?? 0) * 3}px;
-                        .lds-ring {
-                          width: 30px;
-                          height: 30px;
-                          div {
-                            margin: 1px 2px;
-                            width: 30px;
-                            height: 30px;
-                          }
-                        }
-                      `}
-                    />
-                  ) : (
-                    <AtomWrapper
-                      customCSS={css`
-                        flex-direction: row;
-                        flex-wrap: wrap;
-                        width: ${(selectedRoomSizeConfig?.width ?? 0) * 3}px;
-                        height: ${(selectedRoomSizeConfig?.height ?? 0) * 3}px;
-                        align-items: center;
-                        justify-content: center;
-                        background-color: #313139;
-                      `}
-                    >
-                      {cropImagesBlock.length > 0 ? (
-                        <>
-                          {cropImagesBlock.map((image, i) => (
-                            <AtomButton
-                              key={`image${i}`}
-                              customCSS={css`
-                                display: flex;
-                                padding: 0px;
-                              `}
-                              onClick={() => {
-                                setModalImage(true);
-                                setSelectedImage(i);
-                              }}
-                            >
-                              <StyledImage
-                                src={image.image}
-                                alt="croppedImage"
-                                customCSS={css`
-                                  ${showBorder &&
-                                  css`
-                                    border: 2px solid #202024;
-                                  `}
-                                  width: ${((selectedRoomSizeConfig?.width ??
-                                    0) * 3 ?? 0) / (selectedConfig?.x ?? 0)}px;
-                                  height: ${((selectedRoomSizeConfig?.height ??
-                                    0) * 3 ?? 0) / (selectedConfig?.y ?? 0)}px;
-                                `}
-                              />
-                            </AtomButton>
-                          ))}
-                        </>
-                      ) : (
-                        <AtomWrapper
-                          justifyContent="center"
-                          alignItems="center"
-                          width="max-content"
-                        >
-                          <AtomText
-                            color="#dadadb"
-                            fontSize="22px"
-                            fontWeight={600}
-                            customCSS={css`
-                              text-align: center;
-                            `}
-                          >
-                            Pixit your image
-                          </AtomText>
-                        </AtomWrapper>
-                      )}
-                    </AtomWrapper>
-                  )}
-                </>
-              ) : (
-                <AtomWrapper
-                  customCSS={css`
-                    width: 600px;
-                    height: 600px;
-                    background-image: url(${selectedRoomConfig.image});
-                    position: relative;
-                  `}
-                >
-                  <AtomWrapper
-                    customCSS={css`
-                      width: max-content;
-                      height: max-content;
-                      position: absolute;
-                      top: ${selectedRoomConfig.offset?.find(
-                        (off) => off?.key?.name === selected
-                      )?.top}px;
-                      right: 50%;
-                      transform: translate(50%, -50%);
-                      background-color: #313139;
-                      box-shadow: 0px 3px 5px 2px rgba(0, 0, 0, 0.522);
-                      outline: 1px solid #6a6a6a5c;
-                    `}
-                  >
-                    {loading || isLoading ? (
-                      <AtomLoader
-                        isLoading
-                        colorLoading="#4a4a54"
-                        type="small"
-                        customCSS={css`
-                          width: ${30 * (selectedConfig?.x ?? 0)}px;
-                          height: ${30 * (selectedConfig?.y ?? 0)}px;
-                          .lds-ring {
-                            width: 30px;
-                            height: 30px;
-                            div {
-                              margin: 1px 2px;
-                              width: 30px;
-                              height: 30px;
-                            }
-                          }
-                        `}
-                      />
-                    ) : (
-                      <AtomWrapper
-                        customCSS={css`
-                          flex-direction: row;
-                          flex-wrap: wrap;
-                          width: ${30 * (selectedConfig?.x ?? 0)}px;
-                          height: ${30 * (selectedConfig?.y ?? 0)}px;
-                          align-items: center;
-                          justify-content: center;
-                        `}
-                      >
-                        {cropImagesBlock.length > 0 ? (
-                          <>
-                            {cropImagesBlock.map((image, i) => (
-                              <AtomButton
-                                key={`image${image?.id}`}
-                                customCSS={css`
-                                  display: flex;
-                                  padding: 0px;
-                                `}
-                                onClick={() => {
-                                  setModalImage(true);
-                                  setSelectedImage(i);
-                                }}
-                              >
-                                <StyledImage
-                                  src={image.image}
-                                  alt="croppedImage"
-                                  customCSS={css`
-                                    ${showBorder &&
-                                    css`
-                                      border: 2px solid #202024;
-                                    `}
-                                    width: 30px;
-                                    height: 30px;
-                                  `}
-                                />
-                              </AtomButton>
-                            ))}
-                          </>
-                        ) : (
-                          <AtomWrapper
-                            justifyContent="center"
-                            alignItems="center"
-                            width="max-content"
-                          >
-                            <AtomText
-                              color="#4a4a54"
-                              fontSize="28px"
-                              fontWeight={600}
-                              customCSS={css`
-                                text-align: center;
-                              `}
-                            >
-                              Pixit your image
-                            </AtomText>
-                          </AtomWrapper>
-                        )}
-                      </AtomWrapper>
-                    )}
-                  </AtomWrapper>
-                </AtomWrapper>
-              )}
+              {VIEWIMAGE(selectedRoom)}
             </AtomWrapper>
 
             <AtomInput
@@ -575,15 +689,21 @@ const OrganismsConvertImage: FC = () => {
               value={selectedRoom}
               options={[
                 {
-                  id: 'DEFAULT',
-                  value: 'DEFAULT',
-                  label: 'View Full Size'
+                  id: 'REAL',
+                  value: 'REAL',
+                  label: 'Real Size'
                 },
+
                 ...(rooms?.getRooms?.map((room) => ({
                   id: `${room?.id}`,
                   value: `${room?.key}`,
                   label: `${room?.title}`
-                })) ?? [])
+                })) ?? []),
+                {
+                  id: 'FULL',
+                  value: 'FULL',
+                  label: 'View Full Size'
+                }
               ]}
               onChange={(e) => setSelectedRoom(e.target.value)}
               labelWidth="250px"
@@ -698,6 +818,8 @@ const OrganismsConvertImage: FC = () => {
           setState={setModalImage}
           selected={selectedImage}
           setSelected={setSelectedImage}
+          x={selectedConfig?.x}
+          y={selectedConfig?.y}
           images={cropImagesBlock
             .sort((a, b) => (a.id > b.id ? 1 : b.id > a.id ? -1 : 0))
             .map((image) => image.image)}

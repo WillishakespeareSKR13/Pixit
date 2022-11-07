@@ -252,13 +252,14 @@ const VIEW = () => {
                 },
                 {
                   title: 'Price',
-                  view: (item) => (
+                  view: () => (
                     <>
-                      {TCINIT(
+                      0
+                      {/* {TCINIT(
                         data?.getStoreById?.currency,
                         item?.currency,
                         item?.price
-                      )}
+                      )} */}
                       {` ${data?.getStoreById?.currency}`}
                     </>
                   )
@@ -290,17 +291,17 @@ const VIEW = () => {
                 `}
               >
                 {`Total Price: ${
-                  (saleOrder?.product?.reduce(
-                    (acc, cur) =>
-                      acc +
-                      TCINIT(
-                        data?.getStoreById?.currency,
-                        data?.getStoreById?.currency,
-                        cur?.price
-                      ),
-                    0
-                  ) ?? 0) +
-                  (saleOrder?.board?.reduce(
+                  // (saleOrder?.product?.reduce(
+                  //   (acc, cur) =>
+                  //     acc +
+                  //     TCINIT(
+                  //       data?.getStoreById?.currency,
+                  //       data?.getStoreById?.currency,
+                  //       cur?.price
+                  //     ),
+                  //   0
+                  // ) ?? 0) +
+                  saleOrder?.board?.reduce(
                     (acc, cur) =>
                       acc +
                       TCINIT(
@@ -309,7 +310,7 @@ const VIEW = () => {
                         cur?.size?.price
                       ),
                     0
-                  ) ?? 0)
+                  ) ?? 0
                 } ${data?.getStoreById?.currency}`}
               </AtomText>
             </AtomWrapper>

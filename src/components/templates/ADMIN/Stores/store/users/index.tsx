@@ -1,27 +1,35 @@
-import { useMutation, useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { css } from '@emotion/react';
-import { GETROLES } from '@Src/apollo/client/query/rol';
 import { GETSTOREBYID } from '@Src/apollo/client/query/stores';
-import { CREATEUSER, GETUSERS } from '@Src/apollo/client/query/user';
+import { GETUSERS } from '@Src/apollo/client/query/user';
+import AtomTabs from '@Src/components/@atoms/AtomTabs';
+import ActivateUser from '@Src/components/@molecules/ActivateUser';
+import CreateUserModal from '@Src/components/@molecules/CreateUserModal';
+import DesactivateUser from '@Src/components/@molecules/DesactivateUser';
+import UpdateUserModal from '@Src/components/@molecules/UpdateUserModal';
 import DashWithTitle from '@Src/components/layouts/DashWithTitle';
-import { InputLightStyles, InputSelectStyles, TableStyles } from '@Src/styles';
+import {
+  CreateUserModalAtom,
+  UpdateUserModalAtom
+} from '@Src/jotai/createUserModal';
+import { TableStyles } from '@Src/styles';
 import {
   AtomButton,
-  AtomInput,
   AtomLoader,
   AtomTable,
   AtomText,
   AtomWrapper
 } from '@sweetsyui/ui';
-import { useFormik } from 'formik';
 import { IQueryFilter, IUser } from 'graphql';
+import { useSetAtom } from 'jotai';
 import { useParams } from 'react-router-dom';
-import * as Yup from 'yup';
 import { useRouterDashboard } from '../../..';
 
 const VIEW = () => {
   const params = useParams();
   const router = useRouterDashboard();
+  const setCreateUserModal = useSetAtom(CreateUserModalAtom);
+  const setUpdUserModal = useSetAtom(UpdateUserModalAtom);
   const { data, loading } = useQuery<IQueryFilter<'getStoreById'>>(
     GETSTOREBYID,
     {
@@ -30,51 +38,19 @@ const VIEW = () => {
       }
     }
   );
-  const [createUser] = useMutation(CREATEUSER, {
-    onCompleted: () => {
-      router.reload();
-    }
-  });
-  const { data: dataUsers } = useQuery<IQueryFilter<'getUsers'>>(GETUSERS, {
-    variables: {
-      skip: !data?.getStoreById?.id,
-      filter: {
-        store: data?.getStoreById?.id
+
+  const { data: dataUsers, refetch } = useQuery<IQueryFilter<'getUsers'>>(
+    GETUSERS,
+    {
+      variables: {
+        skip: !data?.getStoreById?.id,
+        filter: {
+          store: data?.getStoreById?.id
+        }
       }
     }
-  });
-  const { data: dataRole } = useQuery<IQueryFilter<'getRoles'>>(GETROLES);
-  const formik = useFormik({
-    initialValues: {
-      name: '',
-      lastname: '',
-      email: '',
-      password: '',
-      role: 'DEFAULT',
-      store: [router?.query?.id?.[router.query.id.length - 2] ?? '']
-    },
-    enableReinitialize: true,
-    validationSchema: Yup.object().shape({
-      name: Yup.string().required('name is required'),
-      lastname: Yup.string().required('lastname is required'),
-      email: Yup.string()
-        .email('email is invalid')
-        .required('email is required'),
-      password: Yup.string().required('password is required'),
-      role: Yup.string()
-        .required('role is required')
-        .test('role', 'role is required', (value) => value !== 'DEFAULT')
-    }),
-    onSubmit: (values) => {
-      createUser({
-        variables: {
-          input: {
-            ...values
-          }
-        }
-      });
-    }
-  });
+  );
+
   if (loading)
     return (
       <AtomLoader isLoading backgroundColor="#2e2e35" colorLoading="white" />
@@ -93,7 +69,30 @@ const VIEW = () => {
           ]
         }
       }}
+      button={
+        <>
+          <AtomButton
+            customCSS={css`
+              padding: 8px 20px;
+              background-color: #f1576c;
+            `}
+            onClick={() => setCreateUserModal(true)}
+          >
+            Add User
+          </AtomButton>
+        </>
+      }
     >
+      <CreateUserModal
+        callback={() => {
+          refetch();
+        }}
+      />
+      <UpdateUserModal
+        callback={() => {
+          refetch();
+        }}
+      />
       <AtomWrapper
         customCSS={css`
           flex-direction: row;
@@ -103,7 +102,7 @@ const VIEW = () => {
       >
         <AtomWrapper
           customCSS={css`
-            width: 60%;
+            width: 100%;
           `}
         >
           <AtomText
@@ -116,125 +115,160 @@ const VIEW = () => {
           >
             Users of store {data?.getStoreById?.name}
           </AtomText>
-          <AtomTable
-            customCSS={TableStyles}
-            data={dataUsers?.getUsers as IUser[]}
-            columns={[
+          <AtomTabs
+            componentsProps={{
+              tabsProps: {
+                buttonActiveProps: {
+                  customCSS: css`
+                    background-color: #f1576c;
+                  `
+                },
+                buttonDisabledProps: {
+                  customCSS: css`
+                    background-color: #202026;
+                  `
+                }
+              },
+              contentProps: {
+                wrapperProps: {
+                  customCSS: css`
+                    border: 1px solid #2e2e35;
+                  `
+                }
+              },
+              containerProps: {
+                customCSS: css`
+                  border: 1px solid #2e2e35;
+                `
+              }
+            }}
+            tabs={[
               {
-                title: 'Name',
-                view: (item) => <>{`${item?.name}`}</>
+                title: 'Actived',
+                content: (
+                  <AtomTable
+                    customCSS={TableStyles}
+                    data={
+                      dataUsers?.getUsers?.filter(
+                        (e) => !e?.disabled
+                      ) as IUser[]
+                    }
+                    columns={[
+                      {
+                        width: '0px',
+                        title: 'Actions',
+                        view: (item) => (
+                          <AtomWrapper
+                            customCSS={css`
+                              width: max-content;
+                              flex-direction: row;
+                              gap: 20px;
+                            `}
+                          >
+                            <AtomButton
+                              customCSS={css`
+                                width: 100%;
+                                padding: 8px 20px;
+                                background-color: #f1576c;
+                              `}
+                              onClick={() => {
+                                setUpdUserModal(item?.id ?? '');
+                              }}
+                            >
+                              Edit
+                            </AtomButton>
+                            <DesactivateUser
+                              id={item?.id ?? ''}
+                              callback={() => {
+                                refetch();
+                              }}
+                            />
+                          </AtomWrapper>
+                        )
+                      },
+                      {
+                        title: 'Name',
+                        view: (item) => <>{`${item?.name}`}</>
+                      },
+                      {
+                        title: 'Lastname',
+                        view: (item) => <>{`${item?.lastname}`}</>
+                      },
+                      {
+                        title: 'Email',
+                        view: (item) => <>{`${item?.email}`}</>
+                      },
+                      {
+                        title: 'Role',
+                        view: (item) => <>{`${item?.role?.name}`}</>
+                      }
+                    ]}
+                  />
+                )
               },
               {
-                title: 'Lastname',
-                view: (item) => <>{`${item?.lastname}`}</>
-              },
-              {
-                title: 'Email',
-                view: (item) => <>{`${item?.email}`}</>
-              },
-              {
-                title: 'Role',
-                view: (item) => <>{`${item?.role?.name}`}</>
+                title: 'Desactivated',
+                content: (
+                  <AtomTable
+                    customCSS={TableStyles}
+                    data={
+                      dataUsers?.getUsers?.filter((e) => e?.disabled) as IUser[]
+                    }
+                    columns={[
+                      {
+                        width: '0px',
+                        title: 'Actions',
+                        view: (item) => (
+                          <AtomWrapper
+                            customCSS={css`
+                              width: max-content;
+                              flex-direction: row;
+                              gap: 20px;
+                            `}
+                          >
+                            <AtomButton
+                              customCSS={css`
+                                width: 100%;
+                                padding: 8px 20px;
+                                background-color: #f1576c;
+                              `}
+                              onClick={() => {
+                                setUpdUserModal(item?.id ?? '');
+                              }}
+                            >
+                              Edit
+                            </AtomButton>
+                            <ActivateUser
+                              id={item?.id ?? ''}
+                              callback={() => {
+                                refetch();
+                              }}
+                            />
+                          </AtomWrapper>
+                        )
+                      },
+                      {
+                        title: 'Name',
+                        view: (item) => <>{`${item?.name}`}</>
+                      },
+                      {
+                        title: 'Lastname',
+                        view: (item) => <>{`${item?.lastname}`}</>
+                      },
+                      {
+                        title: 'Email',
+                        view: (item) => <>{`${item?.email}`}</>
+                      },
+                      {
+                        title: 'Role',
+                        view: (item) => <>{`${item?.role?.name}`}</>
+                      }
+                    ]}
+                  />
+                )
               }
             ]}
           />
-        </AtomWrapper>
-        <AtomWrapper
-          customCSS={css`
-            width: 40%;
-          `}
-        >
-          <AtomWrapper
-            key={data?.getStoreById?.id}
-            customCSS={css`
-              width: 100%;
-              height: max-content;
-              background-color: #202026;
-              justify-content: space-between;
-              border-radius: 8px;
-              padding: 15px 20px;
-            `}
-          >
-            <AtomWrapper>
-              <AtomText
-                customCSS={css`
-                  color: #dfdfdf;
-                  font-size: 16px;
-                  font-weight: 600;
-                `}
-              >
-                Add user
-              </AtomText>
-            </AtomWrapper>
-            <AtomWrapper
-              customCSS={css`
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                margin-top: 10px;
-                flex-wrap: wrap;
-              `}
-            >
-              <AtomInput
-                labelWidth="47%"
-                customCSS={InputLightStyles}
-                formik={formik}
-                label="name"
-                id="name"
-              />
-              <AtomInput
-                labelWidth="47%"
-                customCSS={InputLightStyles}
-                formik={formik}
-                label="Lastname"
-                id="lastname"
-              />
-              <AtomInput
-                labelWidth="47%"
-                customCSS={InputLightStyles}
-                formik={formik}
-                label="Email"
-                id="email"
-              />
-              <AtomInput
-                labelWidth="47%"
-                customCSS={InputLightStyles}
-                formik={formik}
-                label="Password"
-                id="password"
-              />
-
-              <AtomInput
-                labelWidth="47%"
-                type="select"
-                label="Role"
-                id="role"
-                optionColor="#dfdfdf"
-                fontWeight="500"
-                formik={formik}
-                customCSS={InputSelectStyles}
-                defaultText="Select role"
-                options={dataRole?.getRoles?.map((item) => ({
-                  value: `${item?.id}`,
-                  label: `${item?.label ?? item?.name}`,
-                  id: `${item?.id}`
-                }))}
-              />
-
-              <AtomButton
-                customCSS={css`
-                  width: 100%;
-                  padding: 8px 10px;
-                  background-color: #f1576c;
-                `}
-                onClick={() => {
-                  formik.submitForm();
-                }}
-              >
-                Add User
-              </AtomButton>
-            </AtomWrapper>
-          </AtomWrapper>
         </AtomWrapper>
       </AtomWrapper>
     </DashWithTitle>

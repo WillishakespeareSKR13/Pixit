@@ -715,6 +715,20 @@ const PointSale: FC = () => {
                                       size: e?.board?.size,
                                       pdf: e?.board?.pdf
                                     })),
+                                  typePayment: payments,
+                                  sheets: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .reduce((acc, item) => {
+                                      const board = boards?.getBoards?.find(
+                                        (x) => x?.id === item.id
+                                      );
+                                      const size = board?.sizes?.find(
+                                        (x) => x?.id === item.board?.size
+                                      );
+                                      return (
+                                        acc + (size?.x ?? 0) * (size?.y ?? 0)
+                                      );
+                                    }, 0),
                                   product: cart
                                     ?.filter((e) => e.type === 'PRODUCT')
                                     .map((e) => e?.product?.id),
@@ -752,7 +766,7 @@ const PointSale: FC = () => {
                     </AtomWrapper>
                   </AtomWrapper>
                 )}
-                {payments === 'CARD' && (
+                {payments === 'CARD_AMERICAN' && (
                   <AtomWrapper
                     key="card"
                     customCSS={css`
@@ -983,6 +997,303 @@ const PointSale: FC = () => {
                                       size: e?.board?.size,
                                       pdf: e?.board?.pdf
                                     })),
+                                  typePayment: payments,
+                                  sheets: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .reduce((acc, item) => {
+                                      const board = boards?.getBoards?.find(
+                                        (x) => x?.id === item.id
+                                      );
+                                      const size = board?.sizes?.find(
+                                        (x) => x?.id === item.board?.size
+                                      );
+                                      return (
+                                        acc + (size?.x ?? 0) * (size?.y ?? 0)
+                                      );
+                                    }, 0),
+                                  product: cart
+                                    ?.filter((e) => e.type === 'PRODUCT')
+                                    .map((e) => e?.product?.id),
+                                  colorsaleorder: [id],
+                                  price:
+                                    SubTotal - Discount + Tax + Number(cardTax),
+                                  productQuantity: cart
+                                    ?.filter((e) => e.type === 'PRODUCT')
+                                    .map((e) => ({
+                                      id: e?.product?.id,
+                                      quantity: e.quantity
+                                    }))
+                                }
+                              }
+                            }).then((e) => {
+                              LAZYPAYSALEORDERCASH({
+                                variables: {
+                                  id: e.data.newSaleOrderCash.id
+                                }
+                              }).then(
+                                () =>
+                                  (window.location.href = `http://${
+                                    location.host
+                                  }/dashboard/${
+                                    Array.isArray(router?.query?.id)
+                                      ? router?.query?.id?.join('/')
+                                      : ''
+                                  }/ticket/${e.data.newSaleOrderCash.id.toString()}`)
+                              );
+                            });
+                          });
+                        }}
+                      >
+                        PAY
+                      </AtomButton>
+                    </AtomWrapper>
+                  </AtomWrapper>
+                )}
+                {payments == 'CARD' && (
+                  <AtomWrapper
+                    key="card"
+                    customCSS={css`
+                      max-width: 700px;
+                      align-self: center;
+                      align-items: center;
+                      width: 100%;
+                      height: 100%;
+                      gap: 20px;
+                    `}
+                  >
+                    <AtomWrapper flexDirection="row" padding="0 30px">
+                      <AtomWrapper width="50%">
+                        <AtomWrapper
+                          maxHeight="300px"
+                          justifyContent="flex-start"
+                          customCSS={css`
+                            gap: 10px;
+                            overflow-y: scroll;
+                          `}
+                        >
+                          {cartOnlyBoard.map((e) => (
+                            <BOARD key={e.id} {...e} boards={boards} />
+                          ))}
+                          {cartOnlyProduct.map((e) => (
+                            <PRODUCT key={e.id} {...e} />
+                          ))}
+                        </AtomWrapper>
+                      </AtomWrapper>
+
+                      <AtomWrapper
+                        width="50%"
+                        height="100%"
+                        alignItems="flex-end"
+                      >
+                        <AtomWrapper
+                          flexDirection="row"
+                          flexWrap="wrap"
+                          customCSS={css`
+                            span {
+                              font-size: 12px;
+                              background-color: #202026;
+                              border-radius: 4px;
+                              border: 2px solid #2e2e35;
+                              color: #ffffff;
+                              padding: 8px 15px;
+
+                              text-overflow: ellipsis;
+                              overflow: hidden;
+                              white-space: nowrap;
+                            }
+                          `}
+                        >
+                          <AtomText width="70%">Subtotal</AtomText>
+                          <AtomText width="30%" align="right">
+                            {`$${SubTotal}`}
+                          </AtomText>
+                          <AtomText
+                            width="70%"
+                            customCSS={css`
+                              display: flex;
+                              flex-direction: row;
+                              align-items: center;
+                              gap: 20px;
+                            `}
+                          >
+                            Discount
+                            <AtomWrapper
+                              customCSS={css`
+                                flex-direction: row;
+                                gap: 10px;
+                              `}
+                            >
+                              <AtomInput
+                                value={`${discount}`}
+                                onChange={(e) => setDiscount(e.target.value)}
+                                type="number"
+                                customCSS={css`
+                                  input {
+                                    color: #ffffff;
+                                    background-color: #2e2e35;
+                                    :focus {
+                                      background-color: #fe6a6a;
+                                    }
+                                    border: none;
+                                    border-radius: 2px;
+                                  }
+                                  height: 18px;
+                                  width: 50px;
+                                `}
+                              />
+                              %
+                            </AtomWrapper>
+                          </AtomText>
+                          <AtomText width="30%" align="right" maxWidth="30%">
+                            -${Discount}
+                          </AtomText>
+                          <AtomText
+                            width="70%"
+                            customCSS={css`
+                              display: flex;
+                              flex-direction: row;
+                              align-items: center;
+                              gap: 20px;
+                            `}
+                          >
+                            Tax
+                            <AtomWrapper
+                              customCSS={css`
+                                flex-direction: row;
+                                gap: 10px;
+                              `}
+                            >
+                              <AtomInput
+                                value={`${tax}`}
+                                onChange={(e) => setTax(e.target.value)}
+                                type="number"
+                                customCSS={css`
+                                  input {
+                                    color: #ffffff;
+                                    background-color: #2e2e35;
+                                    :focus {
+                                      background-color: #fe6a6a;
+                                    }
+                                    border: none;
+                                    border-radius: 2px;
+                                  }
+                                  height: 18px;
+                                  width: 50px;
+                                `}
+                              />
+                              %
+                            </AtomWrapper>
+                          </AtomText>
+                          <AtomText width="30%" align="right" maxWidth="30%">
+                            ${Tax}
+                          </AtomText>
+                          <AtomText width="70%">Grand Total</AtomText>
+                          <AtomText width="30%" align="right">
+                            ${SubTotal - Discount + Tax}
+                          </AtomText>
+                          <AtomText
+                            width="100%"
+                            customCSS={css`
+                              display: flex;
+                              flex-direction: row;
+                              align-items: center;
+                              gap: 20px;
+                            `}
+                          >
+                            Tax Card
+                            <AtomInput
+                              height="22px"
+                              labelWidth="100%"
+                              type="number"
+                              autoFocus
+                              value={`${cardTax}`}
+                              placeholder="$0.00"
+                              onChange={(e) => setCardTax(e.target.value)}
+                              customCSS={css`
+                                input {
+                                  color: #ffffff;
+                                  border: none;
+                                  border-radius: 2px;
+                                  background-color: #2e2e35;
+                                  :focus {
+                                    background-color: #fe6a6a;
+                                  }
+                                }
+                                height: 18px;
+                                width: 100%;
+                              `}
+                            />
+                          </AtomText>
+
+                          <AtomText width="70%">To Pay</AtomText>
+                          <AtomText
+                            width="30%"
+                            align="right"
+                            customCSS={css`
+                              color: #22b620 !important;
+                            `}
+                          >
+                            ${SubTotal - Discount + Tax + Number(cardTax)}
+                          </AtomText>
+                        </AtomWrapper>
+                      </AtomWrapper>
+                    </AtomWrapper>
+                    <AtomWrapper
+                      flexDirection="row"
+                      alignItems="flex-end"
+                      customCSS={css`
+                        gap: 50px;
+                      `}
+                    >
+                      <AtomButton
+                        onClick={() => {
+                          setPay(!pay);
+                          setPayments('');
+                          setPayed(false);
+                        }}
+                      >
+                        CANCEL
+                      </AtomButton>
+                      <AtomButton
+                        loading={load2 || load1 || load3}
+                        onClick={() => {
+                          EXENEWCOLORSALEORDER({
+                            variables: {
+                              input: {
+                                colors: colors?.map((color) => ({
+                                  color: color.id,
+                                  quantity: color.count
+                                }))
+                              }
+                            }
+                          }).then((e) => {
+                            const id = e.data.newColorSaleOrder.id;
+                            EXENEWSALEORDER({
+                              variables: {
+                                input: {
+                                  store: params.id,
+                                  customer: seller,
+                                  board: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .map((e) => ({
+                                      board: e?.board?.id,
+                                      size: e?.board?.size,
+                                      pdf: e?.board?.pdf
+                                    })),
+                                  typePayment: payments,
+                                  sheets: cart
+                                    ?.filter((e) => e.type === 'BOARD')
+                                    .reduce((acc, item) => {
+                                      const board = boards?.getBoards?.find(
+                                        (x) => x?.id === item.id
+                                      );
+                                      const size = board?.sizes?.find(
+                                        (x) => x?.id === item.board?.size
+                                      );
+                                      return (
+                                        acc + (size?.x ?? 0) * (size?.y ?? 0)
+                                      );
+                                    }, 0),
                                   product: cart
                                     ?.filter((e) => e.type === 'PRODUCT')
                                     .map((e) => e?.product?.id),
@@ -1025,7 +1336,7 @@ const PointSale: FC = () => {
             ) : (
               <AtomWrapper
                 customCSS={css`
-                  max-width: 700px;
+                  max-width: 900px;
                   align-items: center;
                   justify-content: center;
                   align-self: center;
@@ -1056,11 +1367,13 @@ const PointSale: FC = () => {
                   customCSS={css`
                     gap: 40px;
                     padding: 40px 0;
+                    flex-wrap: wrap;
                   `}
                 >
                   {[
-                    { id: 1, name: 'Cash', value: 'CASH' },
-                    { id: 2, name: 'Debit/Credit Card', value: 'CARD' }
+                    { id: 1, name: 'American Express', value: 'CARD_AMERICAN' },
+                    { id: 2, name: 'Visa/Master Card', value: 'CARD' },
+                    { id: 3, name: 'Cash', value: 'CASH' }
                   ].map((e) => (
                     <AtomButton
                       key={e.id}

@@ -32,6 +32,7 @@ declare module 'graphql' {
     getSaleOrders?: Array<ISaleOrder | null>;
     getSaleOrderById?: ISaleOrder;
     paySaleOrder?: ISaleOrder;
+    paySaleOrderCash?: ISaleOrder;
     getStoreTypes?: Array<IStoreType | null>;
     getStoreTypeById?: IStoreType;
     getStores?: Array<IStore | null>;
@@ -56,6 +57,8 @@ declare module 'graphql' {
     getColorById?: IColor;
     getColorSaleOrders?: Array<IColorSaleOrder | null>;
     getColorSaleOrderById?: IColorSaleOrder;
+    getProductQuantityBySaleOrder?: IProductQuantity;
+    getTermsConditions?: ITermsConditions;
   }
 
   export interface IUser {
@@ -82,12 +85,16 @@ declare module 'graphql' {
   export interface IStore {
     id?: string;
     name?: string;
+    numberoffice?: number;
+    numberstore?: number;
     description?: string;
     phone?: string;
     email?: string;
     website?: string;
     photo?: string;
     cash?: number;
+    convertion?: number;
+    sheets?: number;
     currency?: string;
     street?: string;
     city?: string;
@@ -131,10 +138,28 @@ declare module 'graphql' {
     colorsaleorder?: Array<string | null>;
   }
 
+  export interface ISortSaleOrder {
+    id?: number;
+    stripeId?: number;
+    secret?: number;
+    product?: number;
+    board?: number;
+    customer?: number;
+    store?: number;
+    quantity?: number;
+    total?: number;
+    currency?: number;
+    status?: number;
+    colorsaleorder?: number;
+    createdAt?: number;
+    updatedAt?: number;
+  }
+
   export interface ISaleOrder {
     id?: string;
     stripeId?: string;
     secret?: string;
+    number?: string;
     product?: Array<IProducts | null>;
     board?: Array<IBoardSelected | null>;
     customer?: IUser;
@@ -143,6 +168,8 @@ declare module 'graphql' {
     ticket?: string;
     total?: number;
     currency?: string;
+    sheets?: number;
+    typePayment?: string;
     status?: string;
     colorsaleorder?: Array<IColorSaleOrder | null>;
     createdAt?: string;
@@ -273,6 +300,22 @@ declare module 'graphql' {
     store?: string;
   }
 
+  export interface IProductQuantity {
+    id?: string;
+    saleOrder?: ISaleOrder;
+    products?: Array<IProductQuantityProduct | null>;
+  }
+
+  export interface IProductQuantityProduct {
+    id?: string;
+    quantity?: number;
+  }
+
+  export interface ITermsConditions {
+    terms?: string;
+    conditions?: string;
+  }
+
   export interface IMutation {
     pong?: string;
     newUser?: IUser;
@@ -280,8 +323,11 @@ declare module 'graphql' {
     login?: ITokenUser;
     newRole?: IRole;
     updateRole?: IRole;
+    deleteRole?: IRole;
     newSaleOrder?: ISaleOrder;
+    newSaleOrderCash?: ISaleOrder;
     updateSaleOrder?: ISaleOrder;
+    sendMailSaleOrder?: IResponseEmail;
     newStoreType?: IStoreType;
     updateStoreType?: IStoreType;
     deleteStoreType?: IStoreType;
@@ -291,6 +337,8 @@ declare module 'graphql' {
     newProduct?: IProducts;
     updateProduct?: IProducts;
     deleteProduct?: IProducts;
+    generateProductsColors?: Array<IProducts | null>;
+    updateProductsColors?: Array<IProducts | null>;
     newBoardType?: IBoardType;
     updateBoardType?: IBoardType;
     deleteBoardType?: IBoardType;
@@ -304,6 +352,7 @@ declare module 'graphql' {
     updateBoardSelected?: IBoardSelected;
     newRoom?: IRoom;
     updateRoom?: IRoom;
+    deleteRoom?: IRoom;
     newRoomSizes?: IRoomSizes;
     updateRoomSizes?: IRoomSizes;
     newColor?: IColor;
@@ -312,6 +361,7 @@ declare module 'graphql' {
     newColorSaleOrder?: IColorSaleOrder;
     updateColorSaleOrder?: IColorSaleOrder;
     deleteColorSaleOrder?: IColorSaleOrder;
+    newUpdateTermsConditions?: ITermsConditions;
   }
 
   export interface IInputUser {
@@ -339,14 +389,20 @@ declare module 'graphql' {
 
   export interface IInputRole {
     name: string;
+    label?: string;
   }
 
   export interface IInputSaleOrder {
     product?: Array<string | null>;
     board?: Array<IInputBoardSelected | null>;
     store?: string;
+    ticket?: string;
     customer?: string;
+    sheets?: number;
+    typePayment?: string;
     colorsaleorder?: Array<string | null>;
+    price?: number;
+    productQuantity?: Array<IInputProductQuantity | null>;
   }
 
   export interface IInputBoardSelected {
@@ -355,18 +411,31 @@ declare module 'graphql' {
     pdf?: string;
   }
 
+  export interface IInputProductQuantity {
+    id?: string;
+    quantity?: number;
+  }
+
+  export interface IResponseEmail {
+    message?: string;
+  }
+
   export interface IInputStoreType {
     name: string;
   }
 
   export interface IInputStore {
     name?: string;
+    numberoffice?: number;
+    numberstore?: number;
     description?: string;
     phone?: string;
     email?: string;
     website?: string;
     photo?: string;
     cash?: number;
+    convertion?: number;
+    sheets?: number;
     currency?: string;
     street?: string;
     city?: string;
@@ -385,6 +454,12 @@ declare module 'graphql' {
     image?: string;
     store?: string;
     color?: string;
+  }
+
+  export interface IInputGenerateProductsColors {
+    price?: number;
+    stock?: number;
+    store?: string;
   }
 
   export interface IInputBoardType {
@@ -461,9 +536,15 @@ declare module 'graphql' {
     quantity?: number;
   }
 
+  export interface IInputTermsConditions {
+    terms?: string;
+    conditions?: string;
+  }
+
   export interface IFilterRole {
     id?: string;
     name?: string;
+    label?: string;
   }
 
   export interface IFilterStoreType {
@@ -480,6 +561,8 @@ declare module 'graphql' {
     website?: string;
     photo?: string;
     cash?: number;
+    convertion?: number;
+    sheets?: number;
     currency?: string;
     street?: string;
     city?: string;
@@ -572,8 +655,12 @@ declare module 'graphql' {
     RoomOffSets?: IRoomOffSetsTypeResolver;
     RoomSizes?: IRoomSizesTypeResolver;
     RoomSizesSizes?: IRoomSizesSizesTypeResolver;
+    ProductQuantity?: IProductQuantityTypeResolver;
+    ProductQuantityProduct?: IProductQuantityProductTypeResolver;
+    TermsConditions?: ITermsConditionsTypeResolver;
     Mutation?: IMutationTypeResolver;
     TokenUser?: ITokenUserTypeResolver;
+    ResponseEmail?: IResponseEmailTypeResolver;
   }
   export interface IQueryTypeResolver<TParent = any> {
     ping?: QueryToPingResolver<TParent>;
@@ -585,6 +672,7 @@ declare module 'graphql' {
     getSaleOrders?: QueryToGetSaleOrdersResolver<TParent>;
     getSaleOrderById?: QueryToGetSaleOrderByIdResolver<TParent>;
     paySaleOrder?: QueryToPaySaleOrderResolver<TParent>;
+    paySaleOrderCash?: QueryToPaySaleOrderCashResolver<TParent>;
     getStoreTypes?: QueryToGetStoreTypesResolver<TParent>;
     getStoreTypeById?: QueryToGetStoreTypeByIdResolver<TParent>;
     getStores?: QueryToGetStoresResolver<TParent>;
@@ -609,6 +697,8 @@ declare module 'graphql' {
     getColorById?: QueryToGetColorByIdResolver<TParent>;
     getColorSaleOrders?: QueryToGetColorSaleOrdersResolver<TParent>;
     getColorSaleOrderById?: QueryToGetColorSaleOrderByIdResolver<TParent>;
+    getProductQuantityBySaleOrder?: QueryToGetProductQuantityBySaleOrderResolver<TParent>;
+    getTermsConditions?: QueryToGetTermsConditionsResolver<TParent>;
   }
 
   export interface QueryToPingResolver<TParent = any, TResult = any> {
@@ -676,6 +766,8 @@ declare module 'graphql' {
 
   export interface QueryToGetSaleOrdersArgs {
     filter?: IFilterSaleOrder;
+    sort?: ISortSaleOrder;
+    limit?: number;
   }
   export interface QueryToGetSaleOrdersResolver<TParent = any, TResult = any> {
     (
@@ -708,6 +800,21 @@ declare module 'graphql' {
     (
       parent: TParent,
       args: QueryToPaySaleOrderArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface QueryToPaySaleOrderCashArgs {
+    id: string;
+  }
+  export interface QueryToPaySaleOrderCashResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: QueryToPaySaleOrderCashArgs,
       context: any,
       info: GraphQLResolveInfo
     ): TResult;
@@ -1001,6 +1108,33 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface QueryToGetProductQuantityBySaleOrderArgs {
+    id: string;
+  }
+  export interface QueryToGetProductQuantityBySaleOrderResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: QueryToGetProductQuantityBySaleOrderArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface QueryToGetTermsConditionsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface IUserTypeResolver<TParent = any> {
     id?: UserToIdResolver<TParent>;
     name?: UserToNameResolver<TParent>;
@@ -1127,6 +1261,7 @@ declare module 'graphql' {
   export interface IRoleTypeResolver<TParent = any> {
     id?: RoleToIdResolver<TParent>;
     name?: RoleToNameResolver<TParent>;
+    label?: RoleToLabelResolver<TParent>;
   }
 
   export interface RoleToIdResolver<TParent = any, TResult = any> {
@@ -1147,15 +1282,28 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface RoleToLabelResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface IStoreTypeResolver<TParent = any> {
     id?: StoreToIdResolver<TParent>;
     name?: StoreToNameResolver<TParent>;
+    numberoffice?: StoreToNumberofficeResolver<TParent>;
+    numberstore?: StoreToNumberstoreResolver<TParent>;
     description?: StoreToDescriptionResolver<TParent>;
     phone?: StoreToPhoneResolver<TParent>;
     email?: StoreToEmailResolver<TParent>;
     website?: StoreToWebsiteResolver<TParent>;
     photo?: StoreToPhotoResolver<TParent>;
     cash?: StoreToCashResolver<TParent>;
+    convertion?: StoreToConvertionResolver<TParent>;
+    sheets?: StoreToSheetsResolver<TParent>;
     currency?: StoreToCurrencyResolver<TParent>;
     street?: StoreToStreetResolver<TParent>;
     city?: StoreToCityResolver<TParent>;
@@ -1174,6 +1322,24 @@ declare module 'graphql' {
   }
 
   export interface StoreToNameResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface StoreToNumberofficeResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface StoreToNumberstoreResolver<TParent = any, TResult = any> {
     (
       parent: TParent,
       args: {},
@@ -1228,6 +1394,24 @@ declare module 'graphql' {
   }
 
   export interface StoreToCashResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface StoreToConvertionResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface StoreToSheetsResolver<TParent = any, TResult = any> {
     (
       parent: TParent,
       args: {},
@@ -1317,15 +1501,20 @@ declare module 'graphql' {
     id?: SaleOrderToIdResolver<TParent>;
     stripeId?: SaleOrderToStripeIdResolver<TParent>;
     secret?: SaleOrderToSecretResolver<TParent>;
+    number?: SaleOrderToNumberResolver<TParent>;
     product?: SaleOrderToProductResolver<TParent>;
     board?: SaleOrderToBoardResolver<TParent>;
     customer?: SaleOrderToCustomerResolver<TParent>;
     store?: SaleOrderToStoreResolver<TParent>;
     quantity?: SaleOrderToQuantityResolver<TParent>;
+    ticket?: SaleOrderToTicketResolver<TParent>;
     total?: SaleOrderToTotalResolver<TParent>;
     currency?: SaleOrderToCurrencyResolver<TParent>;
+    sheets?: SaleOrderToSheetsResolver<TParent>;
+    typePayment?: SaleOrderToTypePaymentResolver<TParent>;
     status?: SaleOrderToStatusResolver<TParent>;
     colorsaleorder?: SaleOrderToColorsaleorderResolver<TParent>;
+    createdAt?: SaleOrderToCreatedAtResolver<TParent>;
   }
 
   export interface SaleOrderToIdResolver<TParent = any, TResult = any> {
@@ -1347,6 +1536,15 @@ declare module 'graphql' {
   }
 
   export interface SaleOrderToSecretResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface SaleOrderToNumberResolver<TParent = any, TResult = any> {
     (
       parent: TParent,
       args: {},
@@ -1400,6 +1598,15 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface SaleOrderToTicketResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface SaleOrderToTotalResolver<TParent = any, TResult = any> {
     (
       parent: TParent,
@@ -1410,6 +1617,27 @@ declare module 'graphql' {
   }
 
   export interface SaleOrderToCurrencyResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface SaleOrderToSheetsResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface SaleOrderToTypePaymentResolver<
+    TParent = any,
+    TResult = any
+  > {
     (
       parent: TParent,
       args: {},
@@ -1431,6 +1659,15 @@ declare module 'graphql' {
     TParent = any,
     TResult = any
   > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface SaleOrderToCreatedAtResolver<TParent = any, TResult = any> {
     (
       parent: TParent,
       args: {},
@@ -2116,6 +2353,103 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface IProductQuantityTypeResolver<TParent = any> {
+    id?: ProductQuantityToIdResolver<TParent>;
+    saleOrder?: ProductQuantityToSaleOrderResolver<TParent>;
+    products?: ProductQuantityToProductsResolver<TParent>;
+  }
+
+  export interface ProductQuantityToIdResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface ProductQuantityToSaleOrderResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface ProductQuantityToProductsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface IProductQuantityProductTypeResolver<TParent = any> {
+    id?: ProductQuantityProductToIdResolver<TParent>;
+    quantity?: ProductQuantityProductToQuantityResolver<TParent>;
+  }
+
+  export interface ProductQuantityProductToIdResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface ProductQuantityProductToQuantityResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface ITermsConditionsTypeResolver<TParent = any> {
+    terms?: TermsConditionsToTermsResolver<TParent>;
+    conditions?: TermsConditionsToConditionsResolver<TParent>;
+  }
+
+  export interface TermsConditionsToTermsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface TermsConditionsToConditionsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface IMutationTypeResolver<TParent = any> {
     pong?: MutationToPongResolver<TParent>;
     newUser?: MutationToNewUserResolver<TParent>;
@@ -2123,8 +2457,11 @@ declare module 'graphql' {
     login?: MutationToLoginResolver<TParent>;
     newRole?: MutationToNewRoleResolver<TParent>;
     updateRole?: MutationToUpdateRoleResolver<TParent>;
+    deleteRole?: MutationToDeleteRoleResolver<TParent>;
     newSaleOrder?: MutationToNewSaleOrderResolver<TParent>;
+    newSaleOrderCash?: MutationToNewSaleOrderCashResolver<TParent>;
     updateSaleOrder?: MutationToUpdateSaleOrderResolver<TParent>;
+    sendMailSaleOrder?: MutationToSendMailSaleOrderResolver<TParent>;
     newStoreType?: MutationToNewStoreTypeResolver<TParent>;
     updateStoreType?: MutationToUpdateStoreTypeResolver<TParent>;
     deleteStoreType?: MutationToDeleteStoreTypeResolver<TParent>;
@@ -2134,6 +2471,8 @@ declare module 'graphql' {
     newProduct?: MutationToNewProductResolver<TParent>;
     updateProduct?: MutationToUpdateProductResolver<TParent>;
     deleteProduct?: MutationToDeleteProductResolver<TParent>;
+    generateProductsColors?: MutationToGenerateProductsColorsResolver<TParent>;
+    updateProductsColors?: MutationToUpdateProductsColorsResolver<TParent>;
     newBoardType?: MutationToNewBoardTypeResolver<TParent>;
     updateBoardType?: MutationToUpdateBoardTypeResolver<TParent>;
     deleteBoardType?: MutationToDeleteBoardTypeResolver<TParent>;
@@ -2147,6 +2486,7 @@ declare module 'graphql' {
     updateBoardSelected?: MutationToUpdateBoardSelectedResolver<TParent>;
     newRoom?: MutationToNewRoomResolver<TParent>;
     updateRoom?: MutationToUpdateRoomResolver<TParent>;
+    deleteRoom?: MutationToDeleteRoomResolver<TParent>;
     newRoomSizes?: MutationToNewRoomSizesResolver<TParent>;
     updateRoomSizes?: MutationToUpdateRoomSizesResolver<TParent>;
     newColor?: MutationToNewColorResolver<TParent>;
@@ -2155,6 +2495,7 @@ declare module 'graphql' {
     newColorSaleOrder?: MutationToNewColorSaleOrderResolver<TParent>;
     updateColorSaleOrder?: MutationToUpdateColorSaleOrderResolver<TParent>;
     deleteColorSaleOrder?: MutationToDeleteColorSaleOrderResolver<TParent>;
+    newUpdateTermsConditions?: MutationToNewUpdateTermsConditionsResolver<TParent>;
   }
 
   export interface MutationToPongResolver<TParent = any, TResult = any> {
@@ -2228,6 +2569,18 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface MutationToDeleteRoleArgs {
+    id: string;
+  }
+  export interface MutationToDeleteRoleResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: MutationToDeleteRoleArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface MutationToNewSaleOrderArgs {
     input?: IInputSaleOrder;
   }
@@ -2238,6 +2591,21 @@ declare module 'graphql' {
     (
       parent: TParent,
       args: MutationToNewSaleOrderArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface MutationToNewSaleOrderCashArgs {
+    input?: IInputSaleOrder;
+  }
+  export interface MutationToNewSaleOrderCashResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: MutationToNewSaleOrderCashArgs,
       context: any,
       info: GraphQLResolveInfo
     ): TResult;
@@ -2254,6 +2622,22 @@ declare module 'graphql' {
     (
       parent: TParent,
       args: MutationToUpdateSaleOrderArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface MutationToSendMailSaleOrderArgs {
+    id: string;
+    email: string;
+  }
+  export interface MutationToSendMailSaleOrderResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: MutationToSendMailSaleOrderArgs,
       context: any,
       info: GraphQLResolveInfo
     ): TResult;
@@ -2380,6 +2764,36 @@ declare module 'graphql' {
     (
       parent: TParent,
       args: MutationToDeleteProductArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface MutationToGenerateProductsColorsArgs {
+    input: IInputGenerateProductsColors;
+  }
+  export interface MutationToGenerateProductsColorsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: MutationToGenerateProductsColorsArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface MutationToUpdateProductsColorsArgs {
+    id: string;
+  }
+  export interface MutationToUpdateProductsColorsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: MutationToUpdateProductsColorsArgs,
       context: any,
       info: GraphQLResolveInfo
     ): TResult;
@@ -2574,6 +2988,18 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface MutationToDeleteRoomArgs {
+    id: string;
+  }
+  export interface MutationToDeleteRoomResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: MutationToDeleteRoomArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface MutationToNewRoomSizesArgs {
     input?: IInputRoomSizes;
   }
@@ -2688,11 +3114,42 @@ declare module 'graphql' {
     ): TResult;
   }
 
+  export interface MutationToNewUpdateTermsConditionsArgs {
+    input?: IInputTermsConditions;
+  }
+  export interface MutationToNewUpdateTermsConditionsResolver<
+    TParent = any,
+    TResult = any
+  > {
+    (
+      parent: TParent,
+      args: MutationToNewUpdateTermsConditionsArgs,
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
   export interface ITokenUserTypeResolver<TParent = any> {
     token?: TokenUserToTokenResolver<TParent>;
   }
 
   export interface TokenUserToTokenResolver<TParent = any, TResult = any> {
+    (
+      parent: TParent,
+      args: {},
+      context: any,
+      info: GraphQLResolveInfo
+    ): TResult;
+  }
+
+  export interface IResponseEmailTypeResolver<TParent = any> {
+    message?: ResponseEmailToMessageResolver<TParent>;
+  }
+
+  export interface ResponseEmailToMessageResolver<
+    TParent = any,
+    TResult = any
+  > {
     (
       parent: TParent,
       args: {},

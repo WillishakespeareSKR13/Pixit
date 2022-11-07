@@ -7,7 +7,6 @@ import { GETUSERS } from '@Src/apollo/client/query/user';
 import DashWithTitle from '@Src/components/layouts/DashWithTitle';
 import { InputStyles, TableStyles } from '@Src/styles';
 import { convertDate } from '@Src/utils/convertDate';
-// import uidd
 import {
   AtomButton,
   AtomCarruosell,
@@ -25,6 +24,9 @@ import { useFormik } from 'formik';
 import { IQueryFilter, ISaleOrder, IUser } from 'graphql';
 import { useRouter } from 'next/router';
 import { GENERATEPRODUCSCOLORS } from '@Src/apollo/client/mutation/color';
+import SheetModal from '@Src/components/@molecules/SheetModal';
+import { useSetAtom } from 'jotai';
+import { SheetModalAtom } from '@Src/jotai/sheetModal';
 
 export const arrayToCsv = (data?: string[][]) =>
   data
@@ -54,8 +56,9 @@ export const downloadCsv = (data: string, filename: string) => {
 };
 
 const VIEW = () => {
+  const setSheetModal = useSetAtom(SheetModalAtom);
   const router = useRouter();
-  const { data, loading } = useQuery<IQueryFilter<'getStoreById'>>(
+  const { data, loading, refetch } = useQuery<IQueryFilter<'getStoreById'>>(
     GETSTOREBYID,
     {
       variables: {
@@ -166,6 +169,80 @@ const VIEW = () => {
             width: 60%;
           `}
         >
+          <AtomWrapper flexDirection="row" justifyContent="space-between">
+            <AtomText
+              customCSS={css`
+                font-size: 20px;
+                font-weight: bold;
+                color: #dfdfdf;
+                margin-bottom: 10px;
+              `}
+            >
+              Sheets
+            </AtomText>
+            <AtomButton
+              customCSS={css`
+                background-color: #f1576c;
+                padding: 8px 20px;
+                font-size: 10px;
+              `}
+              onClick={() => {
+                setSheetModal(true);
+              }}
+            >
+              Add Sheets
+            </AtomButton>
+          </AtomWrapper>
+          <AtomWrapper
+            customCSS={css`
+              max-width: 100%;
+              margin-bottom: 20px;
+            `}
+          >
+            <AtomWrapper
+              customCSS={css`
+                width: 100%;
+                align-items: center;
+                justify-content: flex-start;
+                flex-direction: column;
+                padding: 10px 10px 15px 10px;
+                border-radius: 8px;
+                background-color: #202026;
+              `}
+            >
+              <AtomImage
+                src={`/images/board.png`}
+                alt={`/images/board.png`}
+                height="120px"
+                width="100%"
+                customCSS={css`
+                  overflow: hidden;
+                  border-radius: 4px;
+                  img {
+                    object-fit: contain !important;
+                  }
+                `}
+              />
+              <AtomText
+                width="100%"
+                align="center"
+                fontSize="16px"
+                fontWeight="bold"
+                color="#dfdfdf"
+              >
+                Sheets
+              </AtomText>
+
+              <AtomText
+                align="center"
+                color="#dfdfdf"
+                fontSize="14px"
+                fontWeight="bold"
+              >
+                {data?.getStoreById?.sheets ?? 0}
+              </AtomText>
+            </AtomWrapper>
+          </AtomWrapper>
           {(dataProducts?.getProducts?.length ?? 0) > 0 ? (
             <>
               <AtomWrapper flexDirection="row" justifyContent="space-between">
@@ -750,6 +827,7 @@ const VIEW = () => {
                 customCSS={css`
                   padding: 8px 20px;
                   font-size: 10px;
+                  background-color: #f1576c;
                 `}
                 onClick={() => {
                   router.push(
@@ -758,7 +836,7 @@ const VIEW = () => {
                   );
                 }}
               >
-                Add User
+                All Users
               </AtomButton>
             </AtomWrapper>
             <AtomTable
@@ -787,6 +865,12 @@ const VIEW = () => {
           </AtomWrapper>
         </AtomWrapper>
       </AtomWrapper>
+      <SheetModal
+        id={router?.query?.id?.[router.query.id.length - 1]}
+        callback={() => {
+          refetch();
+        }}
+      />
     </DashWithTitle>
   );
 };

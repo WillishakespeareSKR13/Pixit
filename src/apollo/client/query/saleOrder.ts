@@ -44,6 +44,7 @@ export const GETSALEORDES = gql`
       store {
         id
       }
+      typePayment
       quantity
       total
       currency

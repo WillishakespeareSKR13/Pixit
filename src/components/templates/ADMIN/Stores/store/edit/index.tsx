@@ -19,7 +19,6 @@ import { useFormik } from 'formik';
 import { IQueryFilter } from 'graphql';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
-import * as Yup from 'yup';
 
 const ADD = () => {
   const router = useRouter();
@@ -60,71 +59,24 @@ const ADD = () => {
       city: dataById?.getStoreById?.city || '',
       state: dataById?.getStoreById?.state || '',
       zip: dataById?.getStoreById?.zip || '',
-      storeType: dataById?.getStoreById?.storeType?.id || 'DEFAULT'
+      storeType: dataById?.getStoreById?.storeType?.id || 'DEFAULT',
+      convertion: dataById?.getStoreById?.convertion || ''
     },
     enableReinitialize: true,
-    validationSchema: Yup.object({
-      name: Yup.string().required('Required'),
-      numberoffice: Yup.string().required('Required'),
-      numberstore: Yup.string().required('Required'),
-      description: Yup.string().required('Required'),
-      phone: Yup.string()
-        .required('Required')
-        .test('phone', 'Invalid phone number', (value) =>
-          /^\d{10}$/.test(`${value}`)
-        ),
-      email: Yup.string().required('Required').email('Invalid email'),
-      website: Yup.string()
-        .required('Required')
-        .test('website', 'Invalid website', (value) =>
-          /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(
-            `${value}`
-          )
-        ),
-      photo: Yup.mixed().required('Required'),
-      cash: Yup.number().required('Required'),
-      currency: Yup.mixed().test(
-        'currency',
-        'Select a currency',
-        (value) => value !== 'DEFAULT'
-      ),
-      street: Yup.string().required('Required'),
-      city: Yup.string().required('Required'),
-      state: Yup.string().required('Required'),
-      zip: Yup.string().required('Required'),
-      storeType: Yup.mixed().test(
-        'storeType',
-        'Select a store type',
-        (value) => value !== 'DEFAULT'
-      )
-    }),
     onSubmit: async (values) => {
       setLoading(true);
       EXEUPDATESTORE({
         variables: {
           id: router?.query?.id?.[router.query.id.length - 1],
           input: {
-            name: values.name,
-            numberoffice: values.numberoffice,
-            numberstore: values.numberstore,
-            description: values.description,
-            phone: values.phone,
-            email: values.email,
-            website: values.website,
-            cash: values.cash,
-            currency: values.currency,
-            street: values.street,
-            city: values.city,
-            state: values.state,
-            zip: values.zip,
-            storeType: values.storeType,
-            photo:
-              typeof values.photo === 'string'
-                ? values.photo
-                : await uploadImage(values.photo, {
-                    name: 'store',
-                    orgcode: 'LGO-0001'
-                  })
+            ...values,
+            numberoffice: 0,
+            photo: values.photo?.name
+              ? await uploadImage(values.photo, {
+                  name: 'store',
+                  orgcode: 'LGO-0001'
+                })
+              : 'https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png'
           }
         }
       });
@@ -147,7 +99,7 @@ const ADD = () => {
 
   return (
     <DashWithTitle
-      title="Create new store"
+      title="Edit Store"
       button={
         <AtomButton
           customCSS={css`
@@ -229,16 +181,7 @@ const ADD = () => {
             <AtomInput
               id="name"
               type="text"
-              label="Name of store"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
-              id="numberoffice"
-              type="number"
-              label="Number of office"
+              label="Store Location"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -247,16 +190,7 @@ const ADD = () => {
             <AtomInput
               id="numberstore"
               type="number"
-              label="Number of store"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
-              id="description"
-              type="text"
-              label="Description"
+              label="Store Number"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -322,27 +256,9 @@ const ADD = () => {
             </AtomWrapper>
 
             <AtomInput
-              id="website"
-              type="text"
-              label="Website"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
               id="email"
               type="text"
               label="Email address"
-              labelFontSize="14px"
-              labelWidth="45%"
-              formik={formik}
-              customCSS={InputStyles}
-            />
-            <AtomInput
-              id="cash"
-              type="number"
-              label="Cash"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -365,6 +281,24 @@ const ADD = () => {
                 }
               ]}
               label="Currency"
+              labelFontSize="14px"
+              labelWidth="45%"
+              formik={formik}
+              customCSS={InputStyles}
+            />
+            <AtomInput
+              id="cash"
+              type="number"
+              label="Perry Cash"
+              labelFontSize="14px"
+              labelWidth="45%"
+              formik={formik}
+              customCSS={InputStyles}
+            />
+            <AtomInput
+              id="convertion"
+              type="number"
+              label="Currency Exchange"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}
@@ -393,15 +327,6 @@ const ADD = () => {
             id="city"
             type="text"
             label="City"
-            labelFontSize="14px"
-            labelWidth="30%"
-            formik={formik}
-            customCSS={InputStyles}
-          />
-          <AtomInput
-            id="state"
-            type="text"
-            label="State"
             labelFontSize="14px"
             labelWidth="30%"
             formik={formik}

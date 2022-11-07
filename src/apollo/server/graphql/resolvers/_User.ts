@@ -15,10 +15,11 @@ const resolvers: Resolvers = {
       return ctx.user;
     },
     getUsers: async (_, { filter }) => {
-      const store = filter.store ? { store: filter.store } : {};
-      const role = filter.role ? { role: filter.role } : {};
+      const getFilter = filter ? { ...filter } : {};
+      const store = filter.store ? { store: { $all: [filter.store] } } : {};
+      const role = filter.role ? { role: { $all: [filter.role] } } : {};
       return await Users.find({
-        ...filter,
+        ...getFilter,
         ...store,
         ...role
       })

@@ -27,7 +27,7 @@ const MoleculeCardBoardAll: FC<MoleculeCardBoardAllType> = (props) => {
     >
       <AtomWrapper alignItems="center" padding="10px">
         <AtomImage
-          src={`/images/board.png`}
+          src={`/images/boards.png`}
           alt={`board-image`}
           customCSS={css`
             width: 100%;

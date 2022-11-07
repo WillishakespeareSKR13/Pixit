@@ -142,7 +142,10 @@ const resolvers: Resolvers = {
       saleOrder.status = 'PAID';
       const getStore = await Store.findById(saleOrder.store?._id);
       if (!getStore) throw new Error('Store not found');
-      getStore.cash += saleOrder.total;
+      const cash = (getStore.cash ?? 0) + (saleOrder.total ?? 0);
+      getStore.cash = cash;
+      const sheets = (getStore.sheets ?? 0) - (saleOrder.sheets ?? 0);
+      getStore.sheets = sheets;
       getStore.save();
       const GetAllProducts = await ProductQuantity.findOne({
         saleOrder: saleOrder._id
@@ -195,7 +198,10 @@ const resolvers: Resolvers = {
       saleOrder.status = 'PAID';
       const getStore = await Store.findById(saleOrder.store?._id);
       if (!getStore) throw new Error('Store not found');
-      getStore.cash += saleOrder.total;
+      const cash = (getStore.cash ?? 0) + (saleOrder.total ?? 0);
+      getStore.cash = cash;
+      const sheets = (getStore.sheets ?? 0) - (saleOrder.sheets ?? 0);
+      getStore.sheets = sheets;
       getStore.save();
       const GetAllProducts = await ProductQuantity.findOne({
         saleOrder: saleOrder._id
@@ -220,6 +226,8 @@ const resolvers: Resolvers = {
         store,
         colorsaleorder,
         price,
+        sheets,
+        typePayment,
         productQuantity
       } = input;
 
@@ -363,6 +371,8 @@ const resolvers: Resolvers = {
         number: getAllSaleOrders.length + 1,
         product: getProduct?.map((e) => e._id),
         board: getBoard?.map((e) => e._id),
+        sheets,
+        typePayment,
         ...customerGet,
         ...getColorSaleOrder,
         store: storeGet._id,
@@ -414,6 +424,8 @@ const resolvers: Resolvers = {
         store,
         colorsaleorder,
         price,
+        sheets,
+        typePayment,
         productQuantity
       } = input;
 
@@ -551,6 +563,8 @@ const resolvers: Resolvers = {
         number: getAllSaleOrders.length + 1,
         product: getProduct?.map((e) => e._id),
         board: getBoard?.map((e) => e._id),
+        sheets,
+        typePayment,
         ...customerGet,
         ...getColorSaleOrder,
         store: storeGet._id,
