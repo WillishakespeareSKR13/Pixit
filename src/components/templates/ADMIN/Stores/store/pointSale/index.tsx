@@ -1639,7 +1639,7 @@ const SHEETS = (e: ISheet) => {
             width: 70%;
           `}
         >
-          Sheets
+          Boards Units
         </AtomText>
         <AtomWrapper
           customCSS={css`

@@ -132,30 +132,6 @@ const CompleteOrderPay = () => {
         overflow: hidden;
       `}
     >
-      {/* <AtomWrapper
-        customCSS={css`
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 50vw;
-          height: 50vh;
-          iframe {
-            width: 100%;
-            height: 100%;
-          }
-        `}
-      >
-        <PDFViewer>
-          <PDF
-            id={params?.order}
-            store={dataById?.getStoreById}
-            qrs={qrImages}
-            product={data?.getSaleOrderById}
-            products={dataproduct?.getProductQuantityBySaleOrder?.products}
-            terms={dataterm?.getTermsConditions}
-          />
-        </PDFViewer>
-      </AtomWrapper> */}
       {loadingTicket && (
         <AtomLoader
           isLoading
@@ -187,6 +163,9 @@ const CompleteOrderPay = () => {
           padding="60px 60px"
           justifyContent="center"
           alignItems="center"
+          customCSS={css`
+            gap: 10px;
+          `}
         >
           <AtomText
             customCSS={css`
@@ -221,26 +200,6 @@ const CompleteOrderPay = () => {
               >
                 Email sended to {email}
               </AtomText>
-              <AtomButton
-                onClick={() => {
-                  router.push(
-                    `/dashboard/${[...(router?.query?.id ?? [])]
-                      ?.filter((_, id) => id < 3)
-                      .join('/')}`
-                  );
-                }}
-                customCSS={css`
-                  border: 2px solid #48d496;
-                  background-color: #48d496;
-                  span {
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #fff;
-                  }
-                `}
-              >
-                <AtomText>Back to PointSale</AtomText>
-              </AtomButton>
             </>
           ) : (
             <>
@@ -263,7 +222,6 @@ const CompleteOrderPay = () => {
                   justify-content: space-between;
                   align-items: center;
                   gap: 20px;
-                  margin-bottom: 20px;
                 `}
               >
                 <AtomInput
@@ -301,6 +259,61 @@ const CompleteOrderPay = () => {
                 </AtomButton>
               </AtomWrapper>
             </>
+          )}
+          <AtomButton
+            onClick={() => {
+              router.push(
+                `/dashboard/${[...(router?.query?.id ?? [])]
+                  ?.filter((_, id) => id < 3)
+                  .join('/')}`
+              );
+            }}
+            customCSS={css`
+              border: 2px solid #48d496;
+              background-color: #48d496;
+              span {
+                font-size: 12px;
+                font-weight: 600;
+                color: #fff;
+              }
+            `}
+          >
+            <AtomText>Back to PointSale</AtomText>
+          </AtomButton>
+          {loadingTicket ? (
+            <AtomButton
+              customCSS={css`
+                border: 2px solid #48d496;
+                background-color: transparent;
+                span {
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #48d496;
+                }
+              `}
+            >
+              <AtomText>Loading...</AtomText>
+            </AtomButton>
+          ) : (
+            <AtomButton
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = `${pdf?.url}`;
+                link.download = `ticket-${params?.order}.pdf`;
+                link.click();
+              }}
+              customCSS={css`
+                border: 2px solid #48d496;
+                background-color: transparent;
+                span {
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #48d496;
+                }
+              `}
+            >
+              <AtomText>Download Ticket </AtomText>
+            </AtomButton>
           )}
         </AtomWrapper>
       )}

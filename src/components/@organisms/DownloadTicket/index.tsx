@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     paddingHorizontal: 40,
-    paddingVertical: 20,
+    paddingVertical: 10,
     flexDirection: 'column',
     backgroundColor: '#ffffff',
     alignItems: 'center'
@@ -41,32 +41,32 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   text: {
-    fontSize: 8,
+    fontSize: 6,
     marginBottom: 5,
     maxWidth: 250
   },
   text2: {
-    fontSize: 8,
+    fontSize: 6,
     marginBottom: 2,
     maxWidth: 250
   },
   text3: {
-    fontSize: 8,
+    fontSize: 6,
     marginBottom: 2,
     width: '100%'
   },
   textLarge: {
-    fontSize: 8,
+    fontSize: 6,
     marginBottom: 2,
     width: 80
   },
   textEnd: {
-    fontSize: 8,
+    fontSize: 6,
     marginBottom: 2,
     width: 60
   },
   textBig: {
-    fontSize: 8,
+    fontSize: 6,
     marginBottom: 2,
     fontWeight: 'bold'
   },

@@ -818,8 +818,6 @@ const OrganismsConvertImage: FC = () => {
           setState={setModalImage}
           selected={selectedImage}
           setSelected={setSelectedImage}
-          x={selectedConfig?.x}
-          y={selectedConfig?.y}
           images={cropImagesBlock
             .sort((a, b) => (a.id > b.id ? 1 : b.id > a.id ? -1 : 0))
             .map((image) => image.image)}

@@ -178,7 +178,7 @@ const VIEW = () => {
                 margin-bottom: 10px;
               `}
             >
-              Sheets
+              Boards Units
             </AtomText>
             <AtomButton
               customCSS={css`
@@ -190,7 +190,7 @@ const VIEW = () => {
                 setSheetModal(true);
               }}
             >
-              Add Sheets
+              Add Boards Units
             </AtomButton>
           </AtomWrapper>
           <AtomWrapper
@@ -230,7 +230,7 @@ const VIEW = () => {
                 fontWeight="bold"
                 color="#dfdfdf"
               >
-                Sheets
+                Boards Units
               </AtomText>
 
               <AtomText

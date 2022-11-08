@@ -159,7 +159,7 @@ export const cropAndFilter = async (
         const config = {
           to: canvas2,
           from: imgElement,
-          scale: isPortrait ? 12.5 : 8,
+          scale: isPortrait ? 6.25 : 4,
           palette: mypalette?.map((c: any) => c.color)
         };
         // console.log(mypalette);
@@ -255,7 +255,7 @@ export const cropAndFilter = async (
           }, {} as COLORTYPE)
         ]);
 
-        const size = isPortrait ? 8 : 12.5;
+        const size = isPortrait ? 16 : 25;
         const svgBlock = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
         height="${h2}" width="${w2}">
         <defs>

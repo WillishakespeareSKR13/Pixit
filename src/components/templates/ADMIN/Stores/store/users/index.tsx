@@ -144,7 +144,7 @@ const VIEW = () => {
             }}
             tabs={[
               {
-                title: 'Actived',
+                title: 'Active',
                 content: (
                   <AtomTable
                     customCSS={TableStyles}
@@ -207,7 +207,7 @@ const VIEW = () => {
                 )
               },
               {
-                title: 'Desactivated',
+                title: 'Disabled',
                 content: (
                   <AtomTable
                     customCSS={TableStyles}

@@ -289,7 +289,7 @@ const ADD = () => {
             <AtomInput
               id="cash"
               type="number"
-              label="Perry Cash"
+              label="Petty Cash"
               labelFontSize="14px"
               labelWidth="45%"
               formik={formik}

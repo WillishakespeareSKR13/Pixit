@@ -130,7 +130,7 @@ const SheetModal: FC<Props> = (props) => {
                   fontWeight="bold"
                   color="#dfdfdf"
                 >
-                  Sheets
+                  Boards Units
                 </AtomText>
 
                 <AtomText
