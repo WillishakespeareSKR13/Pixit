@@ -34,7 +34,7 @@ const DesactivateUser: FC<Props> = (props) => {
             z-index: 1;
           `}
         >
-          Disabled
+          Disable
         </AtomButton>
       )}
       {open && (
@@ -104,7 +104,7 @@ const DesactivateUser: FC<Props> = (props) => {
                   `}
                 />
               ) : (
-                'Disabled'
+                'Disable'
               )}
             </AtomButton>
           </AtomWrapper>

@@ -9,6 +9,9 @@ import { GETUSERBYID, GETUSERS } from '@Src/apollo/client/query/user';
 // import MoleculeCardBoard from '@Src/components/@molecules/moleculeCardBoard';
 import MoleculeCardBoardPointSale from '@Src/components/@molecules/moleculeCardBoardPointSale';
 import MoleculeCardProduct from '@Src/components/@molecules/moleculeCardProduct';
+import MoleculeCardSheet, {
+  sheetID
+} from '@Src/components/@molecules/moleculeCardSheet';
 import DashWithTitle from '@Src/components/layouts/DashWithTitle';
 import PageIndex from '@Src/components/pages/index';
 import { colorsAtoms, ICart, setCartAtom } from '@Src/jotai/cart';
@@ -49,8 +52,13 @@ const cartOnlyBoardAtom = atom((get) =>
   get(setCartAtom).filter((e) => e.type === 'BOARD')
 );
 const cartOnlyProductAtom = atom((get) =>
-  get(setCartAtom).filter((e) => e.type !== 'BOARD')
+  get(setCartAtom).filter((e) => e.type === 'PRODUCT')
 );
+
+const cartOnlySheetAtom = atom((get) =>
+  get(setCartAtom).filter((e) => e.type === 'SHEET')
+);
+
 const sellerAtom = atom(null as null | string);
 const taxAtom = atom(0);
 const discountAtom = atom(0);
@@ -65,6 +73,7 @@ const PointSale: FC = () => {
   const [cart, setCart] = useAtom(setCartAtom);
   const cartOnlyBoard = useAtomValue(cartOnlyBoardAtom);
   const cartOnlyProduct = useAtomValue(cartOnlyProductAtom);
+  const cartOnlySheet = useAtomValue(cartOnlySheetAtom);
   const [cardTax, setCardTax] = useAtom(cardTaxAtom);
   const [colors] = useAtom(colorsAtoms);
   const router = useRouter();
@@ -188,6 +197,17 @@ const PointSale: FC = () => {
     [SubTotal, tax]
   );
 
+  const quantySheetAtom = useMemo(
+    () =>
+      (cartOnlySheet?.reduce((acc, item) => acc + item.quantity, 0) ?? 0) +
+      (cartOnlyBoard?.reduce((acc, item) => {
+        const board = boards?.getBoards?.find((x) => x?.id === item.id);
+        const size = board?.sizes?.find((x) => x?.id === item.board?.size);
+        return acc + (size?.x ?? 0) * (size?.y ?? 0);
+      }, 0) ?? 0),
+    [cartOnlyBoard, cartOnlySheet, boards]
+  );
+
   return (
     <DashWithTitle
       url={{
@@ -257,6 +277,7 @@ const PointSale: FC = () => {
                   `}
                 >
                   <MoleculeCardBoardPointSale />
+                  <MoleculeCardSheet />
                   {data?.getProducts?.map((product) => (
                     <MoleculeCardProduct key={product?.id} {...product} />
                   ))}
@@ -284,19 +305,7 @@ const PointSale: FC = () => {
             {cartOnlyBoard.map((e) => (
               <BOARD {...e} boards={boards} key={e.keyid} />
             ))}
-            {cartOnlyBoard.length > 0 && (
-              <SHEETS
-                quantity={cartOnlyBoard?.reduce((acc, item) => {
-                  const board = boards?.getBoards?.find(
-                    (x) => x?.id === item.id
-                  );
-                  const size = board?.sizes?.find(
-                    (x) => x?.id === item.board?.size
-                  );
-                  return acc + (size?.x ?? 0) * (size?.y ?? 0);
-                }, 0)}
-              />
-            )}
+            {quantySheetAtom > 0 && <SHEETS quantity={quantySheetAtom} />}
             {cartOnlyProduct.map((e) => (
               <PRODUCT {...e} key={e.keyid} />
             ))}
@@ -668,6 +677,9 @@ const PointSale: FC = () => {
                           {cartOnlyBoard.map((e) => (
                             <BOARD {...e} boards={boards} key={e.keyid} />
                           ))}
+                          {quantySheetAtom > 0 && (
+                            <SHEETS quantity={quantySheetAtom} />
+                          )}
                           {cartOnlyProduct.map((e) => (
                             <PRODUCT {...e} key={e.keyid} />
                           ))}
@@ -954,6 +966,9 @@ const PointSale: FC = () => {
                           {cartOnlyBoard.map((e) => (
                             <BOARD key={e.id} {...e} boards={boards} />
                           ))}
+                          {quantySheetAtom > 0 && (
+                            <SHEETS quantity={quantySheetAtom} />
+                          )}
                           {cartOnlyProduct.map((e) => (
                             <PRODUCT key={e.id} {...e} />
                           ))}
@@ -1237,6 +1252,9 @@ const PointSale: FC = () => {
                           {cartOnlyBoard.map((e) => (
                             <BOARD {...e} boards={boards} key={e.keyid} />
                           ))}
+                          {quantySheetAtom > 0 && (
+                            <SHEETS quantity={quantySheetAtom} />
+                          )}
                           {cartOnlyProduct.map((e) => (
                             <PRODUCT {...e} key={e.keyid} />
                           ))}
@@ -1597,7 +1615,8 @@ type ISheet = {
   quantity: number;
 };
 const SHEETS = (e: ISheet) => {
-  const { quantity } = e;
+  const [cart, setCart] = useAtom(setCartAtom);
+  const isCart = cart.find((item) => item.id === sheetID);
 
   return (
     <AtomWrapper
@@ -1647,11 +1666,68 @@ const SHEETS = (e: ISheet) => {
             flex-direction: row;
             width: max-content;
             gap: 10px;
-            width: 30%;
+            width: 70%;
             justify-content: flex-end;
           `}
         >
-          <AtomText color="#ffffff">{quantity}</AtomText>
+          <AtomButton
+            padding="0px 10px"
+            disabled={e.quantity <= 1}
+            onClick={() => {
+              if (isCart?.quantity === 0) {
+                setCart({
+                  key: 'REMOVECART',
+                  payload: sheetID
+                });
+              } else {
+                setCart({
+                  key: 'REMOVEQUANTITY',
+                  payload: sheetID
+                });
+              }
+            }}
+          >
+            <AtomText color="white">-</AtomText>
+          </AtomButton>
+          <AtomText color="#ffffff">{e.quantity}</AtomText>
+          <AtomButton
+            padding="0px 10px"
+            onClick={() => {
+              if (isCart) {
+                setCart({
+                  key: 'ADDQUANTITY',
+                  payload: sheetID
+                });
+              } else {
+                setCart({
+                  key: 'ADDCART',
+                  payload: {
+                    id: sheetID,
+                    type: 'SHEET',
+                    quantity: 1
+                  } as ICart
+                });
+              }
+            }}
+          >
+            <AtomText color="white">+</AtomText>
+          </AtomButton>
+          <AtomButton
+            padding="4px"
+            onClick={() =>
+              setCart({
+                key: 'REMOVECART',
+                payload: sheetID
+              })
+            }
+          >
+            <AtomIcon
+              width="13px"
+              height="13px"
+              icon="https://storage.googleapis.com/cdn-bucket-ixulabs-platform/IXU-0001/icons8-basura.svg"
+              color="white"
+            />
+          </AtomButton>
         </AtomWrapper>
       </AtomWrapper>
     </AtomWrapper>

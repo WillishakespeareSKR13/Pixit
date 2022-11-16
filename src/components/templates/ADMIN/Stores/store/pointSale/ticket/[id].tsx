@@ -280,6 +280,7 @@ const CompleteOrderPay = () => {
           >
             <AtomText>Back to PointSale</AtomText>
           </AtomButton>
+
           {loadingTicket ? (
             <AtomButton
               customCSS={css`
@@ -315,6 +316,30 @@ const CompleteOrderPay = () => {
               <AtomText>Download Ticket </AtomText>
             </AtomButton>
           )}
+          {data?.getSaleOrderById?.board?.map((e) => (
+            <AtomButton
+              key={e?.id}
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = `${e?.pdf}`;
+                link.download = `ticket-${params?.order}.pdf`;
+                link.click();
+              }}
+              customCSS={css`
+                border: 2px solid #48d496;
+                background-color: transparent;
+                span {
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #48d496;
+                }
+              `}
+            >
+              <AtomText>
+                Download Instructions - {e?.board?.title} Board
+              </AtomText>
+            </AtomButton>
+          ))}
         </AtomWrapper>
       )}
     </AtomWrapper>

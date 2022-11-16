@@ -239,7 +239,15 @@ const VIEW = () => {
                 fontSize="14px"
                 fontWeight="bold"
               >
-                {data?.getStoreById?.sheets ?? 0}
+                Quantity: {data?.getStoreById?.sheets ?? 0}
+              </AtomText>
+              <AtomText
+                align="center"
+                color="#dfdfdf"
+                fontSize="14px"
+                fontWeight="bold"
+              >
+                Price: ${data?.getStoreById?.sheetPrice ?? 0}
               </AtomText>
             </AtomWrapper>
           </AtomWrapper>

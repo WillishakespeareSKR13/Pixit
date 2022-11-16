@@ -41,6 +41,7 @@ export const GETSTOREBYID = gql`
       photo
       cash
       sheets
+      sheetPrice
       currency
       street
       city

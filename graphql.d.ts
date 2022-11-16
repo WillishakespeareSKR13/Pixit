@@ -95,6 +95,7 @@ declare module 'graphql' {
     cash?: number;
     convertion?: number;
     sheets?: number;
+    sheetPrice?: number;
     currency?: string;
     street?: string;
     city?: string;

@@ -12,6 +12,7 @@ export interface IStore extends Document {
   street: string;
   cash: number;
   sheets: number;
+  sheetPrice: number;
   currency: string;
   convertion: number;
   city: string;
@@ -76,6 +77,10 @@ const StoreSchema: Schema = new Schema(
     sheets: {
       type: Number,
       default: 0
+    },
+    sheetPrice: {
+      type: Number,
+      default: 0.0
     },
     currency: {
       type: String,

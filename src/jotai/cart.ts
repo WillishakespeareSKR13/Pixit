@@ -50,7 +50,7 @@ type IColor = {
 export type ICart = {
   id: string;
   keyid: string;
-  type: 'BOARD' | 'PRODUCT';
+  type: 'BOARD' | 'PRODUCT' | 'SHEET';
   quantity: number;
   color?: IColor;
   board?: {

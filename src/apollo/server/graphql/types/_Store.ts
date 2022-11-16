@@ -16,6 +16,7 @@ const typeDefs = gql`
     cash: Float
     convertion: Float
     sheets: Int
+    sheetPrice: Float
     currency: String
     street: String
     city: String
@@ -38,6 +39,7 @@ const typeDefs = gql`
     cash: Float
     convertion: Float
     sheets: Int
+    sheetPrice: Float
     currency: String
     street: String
     city: String
@@ -57,6 +59,7 @@ const typeDefs = gql`
     cash: Float
     convertion: Float
     sheets: Int
+    sheetPrice: Float
     currency: String
     street: String
     city: String

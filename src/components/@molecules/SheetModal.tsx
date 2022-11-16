@@ -27,7 +27,7 @@ const SheetModal: FC<Props> = (props) => {
   const [isOpen, setIsOpen] = useAtom(SheetModalAtom);
   const [saleOrder, setSaleOrder] = useState<IStore | undefined>();
   const [quantity, setQuantity] = useState(0);
-
+  const [price, setPrice] = useState(0);
   const { data, refetch } = useQuery<IQueryFilter<'getStoreById'>>(
     GETSTOREBYID,
     {
@@ -42,6 +42,7 @@ const SheetModal: FC<Props> = (props) => {
   useEffect(() => {
     setSaleOrder(data?.getStoreById);
     setQuantity(data?.getStoreById?.sheets ?? 0);
+    setPrice(data?.getStoreById?.sheetPrice ?? 0);
   }, [data]);
 
   return (
@@ -133,42 +134,93 @@ const SheetModal: FC<Props> = (props) => {
                   Boards Units
                 </AtomText>
 
-                <AtomText
-                  align="center"
-                  color={
-                    quantity === Number(saleOrder?.sheets ?? 0)
-                      ? '#dfdfdf'
-                      : Number(saleOrder?.sheets ?? 0) > quantity
-                      ? '#f1576c'
-                      : '#10b31e'
-                  }
-                  fontSize="14px"
-                  fontWeight="bold"
+                <AtomWrapper
+                  customCSS={css`
+                    flex-direction: row;
+                    width: max-content;
+                    gap: 10px;
+                  `}
                 >
-                  {quantity === Number(saleOrder?.sheets ?? 0)
-                    ? ''
-                    : Number(saleOrder?.sheets ?? 0) > quantity
-                    ? ''
-                    : '+'}
+                  <AtomText
+                    align="center"
+                    color={
+                      quantity === Number(saleOrder?.sheets ?? 0)
+                        ? '#dfdfdf'
+                        : Number(saleOrder?.sheets ?? 0) > quantity
+                        ? '#f1576c'
+                        : '#10b31e'
+                    }
+                    fontSize="14px"
+                    fontWeight="bold"
+                  >
+                    Quantity: {quantity}
+                  </AtomText>
+                  <AtomText
+                    align="center"
+                    color={
+                      quantity === Number(saleOrder?.sheets ?? 0)
+                        ? '#dfdfdf'
+                        : Number(saleOrder?.sheets ?? 0) > quantity
+                        ? '#f1576c'
+                        : '#10b31e'
+                    }
+                    fontSize="14px"
+                    fontWeight="bold"
+                  >
+                    {quantity === Number(saleOrder?.sheets ?? 0)
+                      ? ''
+                      : Number(saleOrder?.sheets ?? 0) > quantity
+                      ? ''
+                      : '+'}
+                    {quantity - Number(saleOrder?.sheets ?? 0) === 0
+                      ? ''
+                      : quantity - Number(saleOrder?.sheets ?? 0)}
+                  </AtomText>
+                </AtomWrapper>
 
-                  {quantity - Number(saleOrder?.sheets ?? 0) === 0
-                    ? ''
-                    : quantity - Number(saleOrder?.sheets ?? 0)}
-                </AtomText>
-                <AtomText
-                  align="center"
-                  color={
-                    quantity === Number(saleOrder?.sheets ?? 0)
-                      ? '#dfdfdf'
-                      : Number(saleOrder?.sheets ?? 0) > quantity
-                      ? '#f1576c'
-                      : '#10b31e'
-                  }
-                  fontSize="14px"
-                  fontWeight="bold"
+                <AtomWrapper
+                  customCSS={css`
+                    flex-direction: row;
+                    width: max-content;
+                    gap: 10px;
+                  `}
                 >
-                  {quantity}
-                </AtomText>
+                  <AtomText
+                    align="center"
+                    color={
+                      price === Number(saleOrder?.sheetPrice ?? 0)
+                        ? '#dfdfdf'
+                        : Number(saleOrder?.sheetPrice ?? 0) > price
+                        ? '#f1576c'
+                        : '#10b31e'
+                    }
+                    fontSize="14px"
+                    fontWeight="bold"
+                  >
+                    Price: {price}
+                  </AtomText>
+                  <AtomText
+                    align="center"
+                    color={
+                      price === Number(saleOrder?.sheetPrice ?? 0)
+                        ? '#dfdfdf'
+                        : Number(saleOrder?.sheetPrice ?? 0) > price
+                        ? '#f1576c'
+                        : '#10b31e'
+                    }
+                    fontSize="14px"
+                    fontWeight="bold"
+                  >
+                    {price === Number(saleOrder?.sheetPrice ?? 0)
+                      ? ''
+                      : Number(saleOrder?.sheetPrice ?? 0) > price
+                      ? ''
+                      : '+'}
+                    {price - Number(saleOrder?.sheetPrice ?? 0) === 0
+                      ? ''
+                      : price - Number(saleOrder?.sheetPrice ?? 0)}
+                  </AtomText>
+                </AtomWrapper>
               </AtomWrapper>
 
               <AtomWrapper
@@ -188,6 +240,17 @@ const SheetModal: FC<Props> = (props) => {
                     setQuantity(Number(e.target.value));
                   }}
                 />
+                <AtomInput
+                  customCSS={css`
+                    width: 100px;
+                    ${InputStyles}
+                  `}
+                  type="number"
+                  value={`${price}`}
+                  onChange={(e) => {
+                    setPrice(Number(e.target.value));
+                  }}
+                />
                 <AtomButton
                   loading={loading}
                   onClick={async () => {
@@ -195,7 +258,8 @@ const SheetModal: FC<Props> = (props) => {
                       variables: {
                         id: id,
                         input: {
-                          sheets: quantity
+                          sheets: quantity,
+                          sheetPrice: price
                         }
                       }
                     });
@@ -204,7 +268,7 @@ const SheetModal: FC<Props> = (props) => {
                     callback?.(saleOrder);
                   }}
                 >
-                  Add
+                  Set
                 </AtomButton>
               </AtomWrapper>
             </AtomWrapper>
