@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import PointSale from './pointsale';
-import CompleteTicketOrderPay from '../AGENT/pointsale/ticket/[id]';
+import CompleteTicketOrderPay from './pointsale/ticket/[id]';
 
 const ADMIN = () => {
   return (

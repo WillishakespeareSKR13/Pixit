@@ -163,6 +163,16 @@ export const PDF = (props: PropsPDF) => {
               </View>
             ))}
             <View style={{ ...styles.viewJustify, paddingTop: 10 }}>
+              <Text style={styles.textLarge}>Boards Units</Text>
+              <Text style={styles.text}>Quantity</Text>
+              <Text style={styles.textEnd}>Price</Text>
+            </View>
+            <View style={styles.viewJustify}>
+              <Text style={styles.textLarge}>Unit</Text>
+              <Text style={styles.text}>{product?.sheets ?? 0}</Text>
+              <Text style={styles.textEnd}>${store?.sheetPrice ?? 0}</Text>
+            </View>
+            <View style={{ ...styles.viewJustify, paddingTop: 10 }}>
               <Text style={styles.textLarge}>Products</Text>
               <Text style={styles.text}>Quantity</Text>
               <Text style={styles.textEnd}>Price</Text>

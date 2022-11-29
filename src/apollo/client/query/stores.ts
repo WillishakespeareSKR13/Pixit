@@ -14,6 +14,7 @@ export const GETSTORES = gql`
       photo
       cash
       sheets
+      sheetPrice
       currency
       street
       city

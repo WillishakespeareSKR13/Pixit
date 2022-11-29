@@ -30,12 +30,10 @@ const StoreSchema: Schema = new Schema(
       unique: true
     },
     numberoffice: {
-      type: Number,
-      required: true
+      type: Number
     },
     numberstore: {
-      type: Number,
-      required: true
+      type: Number
     },
     description: {
       type: String,

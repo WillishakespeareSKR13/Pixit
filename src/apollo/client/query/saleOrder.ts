@@ -16,6 +16,7 @@ export const GETSALEORDES = gql`
         id
         name
       }
+      sheets
       board {
         id
         pdf
@@ -74,6 +75,7 @@ export const GETSALEORDERBYID = gql`
       stripeId
       secret
       ticket
+      sheets
       product {
         id
         name
